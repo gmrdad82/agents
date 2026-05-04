@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint + scripts + templates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prettier — markdown formatting check
+        run: npx --yes prettier@latest --check '**/*.md'
+
+      - name: ShellCheck — bash script linter
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: bin
+          format: gcc
+
+      - name: bash -n — syntax check on every script
+        run: |
+          set -e
+          for script in bin/*.sh bin/test/*.sh; do
+            [ -f "$script" ] || continue
+            bash -n "$script"
+          done
+
+      - name: install.sh dry-run smoke (isolated HOME)
+        run: |
+          set -e
+          export HOME="$(mktemp -d)"
+          mkdir -p "$HOME/Dev/smoke-test"
+          bin/install.sh smoke-test --include architect,rails,reviewer --dry-run
+
+      - name: install.sh real run + pull.sh roundtrip (isolated HOME)
+        run: bin/test/roundtrip_test.sh
+
+      - name: Agent frontmatter lint
+        run: bin/test/agent_frontmatter_lint.sh
