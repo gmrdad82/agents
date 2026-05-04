@@ -1,0 +1,17 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor swap / backup files
+*.swp
+*.swo
+*.bak
+*~
+
+# Editor configs that aren't shareable
+.idea/
+.vscode/
+
+# Local-only experiments
+*.tmp
+tmp/
