@@ -89,7 +89,7 @@ REPO_PATH="${HOME}/Dev/${PREFIX}"
 shopt -s nullglob
 for src in "${HOME}/.claude/agents/${PREFIX}-"*.md; do
   basename="$(basename "$src" .md)"
-  name="${basename#${PREFIX}-}"
+  name="${basename#"${PREFIX}-"}"
   dest="${PULLED_DIR_TMP}/agents/${name}.md"
   sed -e "s|${REPO_PATH}|{{REPO_PATH}}|g" "$src" > "$dest"
 done

@@ -80,10 +80,10 @@ echo ""
 
 shopt -s nullglob
 matched=0
-for src in "${SRC_AGENTS}"/${PREFIX}-*.md; do
+for src in "${SRC_AGENTS}/${PREFIX}-"*.md; do
   matched=1
   basename="$(basename "$src" .md)"
-  name="${basename#${PREFIX}-}"
+  name="${basename#"${PREFIX}-"}"
 
   found=0
   for allowed in "${ALLOWED_AGENTS[@]}"; do
@@ -95,7 +95,7 @@ for src in "${SRC_AGENTS}"/${PREFIX}-*.md; do
   fi
 
   dest="${DEST_AGENTS}/${name}.md"
-  rel_dest="${dest#${HOME}/}"
+  rel_dest="${dest#"${HOME}/"}"
 
   if [[ $DRY_RUN -eq 1 ]]; then
     if [[ -f "$dest" ]]; then

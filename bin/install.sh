@@ -103,7 +103,7 @@ declare -a INSTALLED_PATHS=()
 for name in "${REQUESTED[@]}"; do
   src="${SRC_AGENTS}/${name}.md"
   dest="${DEST_AGENTS}/${PREFIX}-${name}.md"
-  rel_dest="${dest#${HOME}/}"
+  rel_dest="${dest#"${HOME}/"}"
 
   if [[ ! -f "$src" ]]; then
     echo "  SKIP    $rel_dest — source $src missing"
@@ -147,13 +147,13 @@ if [[ $PRUNE -eq 1 ]]; then
   echo ""
   echo "prune (scoped to ${PREFIX}-*.md):"
   shopt -s nullglob
-  for existing in "${DEST_AGENTS}"/${PREFIX}-*.md; do
+  for existing in "${DEST_AGENTS}/${PREFIX}-"*.md; do
     keep=0
     for installed in "${INSTALLED_PATHS[@]:-}"; do
       [[ "$existing" == "$installed" ]] && { keep=1; break; }
     done
     if [[ $keep -eq 0 ]]; then
-      rel="${existing#${HOME}/}"
+      rel="${existing#"${HOME}/"}"
       if [[ $DRY_RUN -eq 1 ]]; then
         echo "  WOULD DELETE  $rel"
       else
