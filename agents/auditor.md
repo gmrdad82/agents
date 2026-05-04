@@ -73,23 +73,21 @@ not started, D mismatch.
 
 ### Done (evidence verified)
 
-- [x] <checkbox text>
-          - Evidence: file paths, log entries, spec slug.
+- [x] `<checkbox text>` - Evidence: file paths, log entries, spec slug.
 
 ### Partial (started, not finished)
 
-- [~] <checkbox text>
+- [~] `<checkbox text>`
   - Evidence: what is in place.
   - Gap: what is missing.
 
 ### Not started
 
-- [ ] <checkbox text>
-          - No evidence found in <list of paths searched>.
+- [ ] `<checkbox text>` - No evidence found in `<list of paths searched>`.
 
 ### Mismatch
 
-- [!] <checkbox text>
+- [!] `<checkbox text>`
   - Plan says: <ticked / unticked>.
   - Reality says: <what you found>.
   - Recommendation: which agent should reconcile.
