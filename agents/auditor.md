@@ -74,7 +74,7 @@ not started, D mismatch.
 ### Done (evidence verified)
 
 - [x] <checkbox text>
-  - Evidence: file paths, log entries, spec slug.
+      - Evidence: file paths, log entries, spec slug.
 
 ### Partial (started, not finished)
 
@@ -85,7 +85,7 @@ not started, D mismatch.
 ### Not started
 
 - [ ] <checkbox text>
-  - No evidence found in <list of paths searched>.
+      - No evidence found in <list of paths searched>.
 
 ### Mismatch
 

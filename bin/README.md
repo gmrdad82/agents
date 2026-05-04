@@ -16,11 +16,11 @@ listed explicitly so installs are reviewable.
 
 ### Flags
 
-| Flag        | Effect                                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------------------- |
-| `--include` | Comma-separated agent names to install. Required.                                                       |
-| `--dry-run` | Print what would happen without writing.                                                                |
-| `--force`   | Overwrite even when `~/.claude/` copy is newer than the source. Default refuses (mtime-safe).           |
+| Flag        | Effect                                                                                                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `--include` | Comma-separated agent names to install. Required.                                                                                |
+| `--dry-run` | Print what would happen without writing.                                                                                         |
+| `--force`   | Overwrite even when `~/.claude/` copy is newer than the source. Default refuses (mtime-safe).                                    |
 | `--prune`   | Delete `~/.claude/agents/<prefix>-*.md` files that aren't in the current `--include` set. Scoped — never touches other prefixes. |
 
 ### Examples
@@ -55,11 +55,11 @@ bin/install.sh pito --include rails,reviewer --prune
 
 Each source `agents/<name>.md` may contain placeholders:
 
-| Placeholder      | Replacement                            |
-| ---------------- | -------------------------------------- |
-| `{{PREFIX}}`     | The prefix arg, e.g. `pito`            |
-| `{{REPO_NAME}}`  | Same as the prefix (kept distinct for future use) |
-| `{{REPO_PATH}}`  | `${HOME}/Dev/<prefix>`, e.g. `/home/catalin/Dev/pito` |
+| Placeholder     | Replacement                                           |
+| --------------- | ----------------------------------------------------- |
+| `{{PREFIX}}`    | The prefix arg, e.g. `pito`                           |
+| `{{REPO_NAME}}` | Same as the prefix (kept distinct for future use)     |
+| `{{REPO_PATH}}` | `${HOME}/Dev/<prefix>`, e.g. `/home/catalin/Dev/pito` |
 
 The replacement happens via `sed` on the way out — the source file stays
 generic; only the installed copy is project-specific.
