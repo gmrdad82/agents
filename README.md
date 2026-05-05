@@ -33,10 +33,10 @@ MCP + Astro):
 bin/install.sh pito --include architect,auditor,docs,mcp,rails,reviewer,rust,security,astro
 ```
 
-Install fepra's set (Rails-only client project, no Rust / MCP / Astro):
+Install fepra's set (Rails-only client project, no Rust / MCP / Astro, with Jira workflow):
 
 ```bash
-bin/install.sh fepra --include architect,auditor,docs,rails,reviewer,security
+bin/install.sh fepra --include architect,auditor,docs,jira,rails,reviewer,security
 ```
 
 Both runs target `~/.claude/agents/` with the prefix prepended:
@@ -75,6 +75,7 @@ the agent file.
 | `astro.md`     | Astro landing page (Cloudflare Pages)                     |
 | `auditor.md`   | Read-only state auditor — gap analysis, drift checks      |
 | `docs.md`      | Markdown / docs / playbooks / log keeper                  |
+| `jira.md`      | Jira workflow — timer, transitions, worklogs, comments    |
 | `mcp.md`       | MCP server tool surface                                   |
 | `rails.md`     | Rails feature implementation                              |
 | `reviewer.md`  | Pipeline gates + manual playbook author                   |

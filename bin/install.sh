@@ -29,7 +29,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_AGENTS="${REPO_ROOT}/agents"
 DEST_AGENTS="${HOME}/.claude/agents"
 
-ALLOWED_AGENTS=(architect astro auditor docs mcp rails reviewer rust security)
+ALLOWED_AGENTS=(architect astro auditor docs jira mcp rails reviewer rust security)
 
 PREFIX=""
 INCLUDE=""
