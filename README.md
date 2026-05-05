@@ -33,10 +33,10 @@ MCP + Astro):
 bin/install.sh pito --include architect,auditor,docs,mcp,rails,reviewer,rust,security,astro
 ```
 
-Install fepra's set (Rails-only client project, no Rust / MCP / Astro, with Jira workflow):
+Install fepra's set (Rails-only client project, no Rust / MCP / Astro, with Jira + Slack workflow):
 
 ```bash
-bin/install.sh fepra --include architect,auditor,docs,jira,rails,reviewer,security
+bin/install.sh fepra --include architect,auditor,docs,jira,rails,reviewer,security,slack
 ```
 
 Both runs target `~/.claude/agents/` with the prefix prepended:
@@ -81,6 +81,7 @@ the agent file.
 | `reviewer.md`  | Pipeline gates + manual playbook author                   |
 | `rust.md`      | Rust crate / CLI / library implementation                 |
 | `security.md`  | Security review pass — sensitive changes only             |
+| `slack.md`     | Slack notifications — drafts + sends (after confirmation) |
 
 ## Project-specific rules live in the project's CLAUDE.md
 
