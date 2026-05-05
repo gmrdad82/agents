@@ -9,8 +9,8 @@
 #
 # Behaviour:
 #   - Reads every ~/.claude/agents/<prefix>-<name>.md whose <name> is in
-#     the allowlist (architect, astro, auditor, docs, mcp, rails, reviewer,
-#     rust, security).
+#     the allowlist (architect, astro, auditor, docs, jira, mcp, rails,
+#     reviewer, rust, security, slack).
 #   - Reverse-substitutes the absolute repo path (~/Dev/<prefix>) with
 #     {{REPO_PATH}}, then writes to agents/<name>.md (overwriting).
 #
@@ -36,7 +36,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SRC_AGENTS="${HOME}/.claude/agents"
 DEST_AGENTS="${REPO_ROOT}/agents"
 
-ALLOWED_AGENTS=(architect astro auditor docs mcp rails reviewer rust security)
+ALLOWED_AGENTS=(architect astro auditor docs jira mcp rails reviewer rust security slack)
 
 PREFIX=""
 DRY_RUN=0
