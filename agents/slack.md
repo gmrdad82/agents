@@ -2,7 +2,7 @@
 name: {{PREFIX}}-slack
 description: Pure pass-through Slack notification agent. The dispatcher passes a message body string plus an optional channel name; the agent resolves the channel ID via the Slack MCP and sends the message verbatim. No templates, no Jira, no playbooks, no draft-and-confirm dance. Reads `{{REPO_PATH}}/docs/agents/slack.md` only to learn the project's default channel (and optional channel type). Read-only on the repo.
 model: opus
-tools: Bash, Read, Grep, Glob
+tools: Bash, Read, Grep, Glob, mcp__claude_ai_Slack__slack_send_message, mcp__claude_ai_Slack__slack_search_channels
 ---
 
 ## Communication style
