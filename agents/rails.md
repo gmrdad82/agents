@@ -101,6 +101,67 @@ validates the manual playbook. There is no pull-request workflow.
    files touched (high level), specs added, open issues. Use the existing log
    style.
 
+## Render smoke check (MANDATORY after view / component / model / partial changes)
+
+Many Rails projects ship a class of render-time errors ("Content missing",
+`ActionView::Template::Error`, NoMethodError on `nil` in a partial) that only
+surface when the page is actually rendered. RSpec model / request specs may
+pass while the page is broken because no one exercises the full view
+rendering with realistic data.
+
+**Before reporting done, if your dispatch touched ANY of:**
+
+- `app/views/**`
+- `app/components/**`
+- `app/helpers/**`
+- `app/models/**` (when associations / scopes / callbacks change)
+- `app/controllers/**` (when ivars passed to views change)
+- `config/routes.rb`
+- `app/javascript/controllers/**` (when Turbo / Stimulus wiring changes)
+
+**Run a server-side render smoke test of every affected page.** Adapt the
+URL list to the pages your change actually affected:
+
+```bash
+bin/rails runner '
+  urls = [
+    # add every page your change touched, e.g.
+    # "/games",
+    # "/games/#{Game.first&.id}",
+  ].compact
+  failures = []
+  urls.each do |url|
+    env = Rack::MockRequest.env_for(url, method: "GET")
+    status, headers, body = Rails.application.call(env)
+    body_str = body.respond_to?(:body) ? body.body : body.to_a.join
+    if status >= 500
+      failures << "[#{status}] #{url} — #{body_str[0..500]}"
+    elsif body_str.include?("Content missing") || body_str.include?("ActionView::Template::Error")
+      failures << "[render error] #{url} — #{body_str[body_str.index(/Content missing|Template::Error/)...][0..500]}"
+    else
+      puts "[#{status}] #{url} OK (#{body_str.length} bytes)"
+    end
+  end
+  if failures.any?
+    puts "FAILURES:"
+    failures.each { |f| puts f }
+    exit 1
+  end
+' 2>&1 | tail -30
+```
+
+**If the smoke check reports a failure, FIX it before reporting done.** Do
+not pass the failure back to the master to debug.
+
+If your change touches Turbo Frame mechanics specifically (frame targets,
+`data-turbo-frame` attrs, redirect logic), also visit the destination page
+from the source frame in the runner test — the "Content missing" error
+specifically happens when Turbo can't find a named frame target on the
+destination page.
+
+This rule supplements the existing `bin/rspec` + `bin/brakeman` end-of-session
+checks — it does not replace them.
+
 ## Hard constraints
 
 - **Never commit, never push.** The user commits after manual validation.
