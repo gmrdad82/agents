@@ -58,8 +58,7 @@ validates the manual playbook. There is no pull-request workflow.
 
 ## When you finish
 
-Report: files added or modified, build / preview result, plan.md checkbox(es)
-ticked, log entry path.
+Report: files added or modified, build / preview result.
 
 ## Scope rule (mandatory, non-negotiable)
 

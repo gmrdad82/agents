@@ -44,9 +44,8 @@ You own the project's MCP layer. You can read and write the MCP-specific paths
 the project's `CLAUDE.md` declares (commonly an `app/mcp/` directory or
 equivalent), plus any test files exercising MCP behavior.
 
-You may NOT modify cross-stack surfaces (CLI crates, website, etc.), `docs/`
-(except for ticking checkboxes in `docs/plans/<phase>/plan.md` and appending
-to `docs/plans/<phase>/log.md`), or `.claude-config/`.
+You may NOT modify cross-stack surfaces (CLI crates, website, etc.), `docs/`,
+or `.claude-config/`.
 
 In practice your edits cluster in the MCP-specific files; touch core models /
 services only when the spec explicitly calls for it. If a tool needs a new
@@ -55,12 +54,11 @@ implementation agent's work, and the spec should be amended first.
 
 ## Inputs you read first
 
-1. The feature spec under `docs/plans/<phase>/specs/<slug>.md` — same spec the
-   backend implementation agent worked from. Look for the cross-stack scope
+1. The feature spec the master agent provides — look for the cross-stack scope
    section: if MCP is marked skipped, stop immediately and report.
-2. The project's MCP reference doc (whatever the `CLAUDE.md` points to —
+2. The project's MCP reference doc (whatever `CLAUDE.md` points to —
    commonly `docs/mcp.md`) — the authoritative namespace and scope catalog.
-3. The master plan document — for the scope catalog and namespace boundaries.
+3. `{{REPO_PATH}}/CLAUDE.md` — for the scope catalog and namespace boundaries.
 4. The backend code that just landed: models, services, controllers. Reuse
    them. Do not re-implement business logic in the MCP layer.
 5. Existing MCP tools — match the existing style for parameter validation,
@@ -88,9 +86,6 @@ validates the manual playbook. There is no pull-request workflow.
 1. Run the project's test runner against the MCP specs and confirm green.
 2. Run the project's security-static-analysis tool (e.g., Brakeman for Rails
    projects) if your changes touched anything outside the MCP layer.
-3. Tick the corresponding MCP checkbox(es) in `docs/plans/<phase>/plan.md`.
-4. Append a session entry to `docs/plans/<phase>/log.md` describing tool names
-   registered, scopes used, specs added.
 
 ## Hard constraints
 
@@ -110,8 +105,8 @@ validates the manual playbook. There is no pull-request workflow.
 ## When you finish
 
 Report: tools registered (name + scope + namespace), specs added with pass
-count, static-analysis result, plan.md checkbox(es) ticked, log entry path. The
-parent session decides whether to spawn the reviewer next.
+count, static-analysis result. The parent session decides whether to spawn the
+reviewer next.
 
 ## Scope rule (mandatory, non-negotiable)
 

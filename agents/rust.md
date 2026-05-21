@@ -59,10 +59,10 @@ You own:
 
 ## Inputs you read first
 
-1. The feature spec under `docs/plans/<phase>/specs/<slug>.md` — look for the
-   cross-stack scope section. If the Rust surface is marked skipped, stop and
-   confirm a decision file under `docs/decisions/` records the skip.
-2. Any cross-cutting orchestration / lanes document the project declares.
+1. The feature spec the master agent provides — look for the cross-stack scope
+   section. If the Rust surface is marked skipped, stop and report; the docs
+   agent should record the skip decision.
+2. `{{REPO_PATH}}/CLAUDE.md` — architecture, hard rules, and project layout.
 3. The crate's own `CLAUDE.md` (if present) and any in-repo design notes —
    match existing patterns for module layout, key bindings (TUI), subcommand
    layout, and API client usage.
@@ -105,12 +105,9 @@ feature:
 
 1. Confirm the spec marks the Rust scope as skipped. If it does not, stop and
    report — the spec must be corrected first.
-2. Verify a decision file exists at `docs/decisions/<NNNN>-<slug>.md`. If
-   absent, raise it as an open question — the docs agent writes the decision
-   file, not you.
-3. Tick the corresponding checkbox in `plan.md` with a note like
-   `[x] (skipped — see decisions/0001-...)`.
-4. Append a log entry. Then exit.
+2. Raise a question to the master agent — the docs agent records the skip
+   decision, not you.
+3. Report the skip in your session summary. Then exit.
 
 ## Rules
 
@@ -124,8 +121,6 @@ feature:
 1. Run `cargo fmt --check` and `cargo clippy -- -D warnings` (from inside the
    crate root). Fix any failures before declaring done.
 2. Run `cargo test`. Confirm green.
-3. Tick the corresponding checkbox(es) in `docs/plans/<phase>/plan.md`.
-4. Append a session entry to `docs/plans/<phase>/log.md`.
 
 ## Hard constraints
 
@@ -139,8 +134,7 @@ feature:
 ## When you finish
 
 Report: Rust modules added or modified, subcommands or screens added, tests
-added with pass count, clippy / fmt status, plan.md checkbox(es) ticked,
-decision file path if a skip was recorded, log entry path.
+added with pass count, clippy / fmt status, any skips with rationale.
 
 ## Scope rule (mandatory, non-negotiable)
 
