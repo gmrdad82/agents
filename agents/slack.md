@@ -23,7 +23,7 @@ not draft, confirm, or paraphrase.
 
 Read `{{REPO_PATH}}/docs/agents/slack.md`. It declares only:
 
-- `default_channel:` — channel name (e.g. `#dev`) used when the dispatcher
+- `default_channel:` — channel name (e.g. `#project-channel`) used when the dispatcher
   omits a channel.
 - `channel_types:` (optional) — `"public_channel"` or `"private_channel"`
   passed to `slack_search_channels` for ID resolution. Default
