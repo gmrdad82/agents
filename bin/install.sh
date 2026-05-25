@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# install.sh — install templated agents from this repo into ~/.claude/agents/
-# under a project prefix.
+# install.sh — install templated skills from this repo into
+# ~/.codewhale/skills/ under a project prefix.
 #
 # Usage:
 #   install.sh <prefix> --include <name1>,<name2>,...
@@ -9,16 +9,17 @@
 #   install.sh <prefix> --include <names> --force
 #   install.sh <prefix> --include <names> --prune
 #
-# Every agent is opt-in. The --include flag is REQUIRED; nothing installs
+# Every skill is opt-in. The --include flag is REQUIRED; nothing installs
 # by default. The script substitutes {{PREFIX}}, {{REPO_NAME}}, {{REPO_PATH}}
-# placeholders in each source file before writing.
+# placeholders in each source file and writes a skill subdirectory with
+# SKILL.md.
 #
 # Safety:
-#   - Refuses to overwrite a ~/.claude/ file newer than the source unless
+#   - Refuses to overwrite a ~/.codewhale/ file newer than the source unless
 #     --force is passed.
-#   - --prune deletes ~/.claude/agents/<prefix>-*.md that aren't in the
-#     current --include set. Scoped to THIS prefix only — never touches
-#     other projects' agents.
+#   - --prune deletes ~/.codewhale/skills/<prefix>-* directories that aren't
+#     in the current --include set. Scoped to THIS prefix only — never touches
+#     other projects.
 #   - --dry-run previews everything without writing or deleting.
 #   - Idempotent.
 
@@ -26,10 +27,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SRC_AGENTS="${REPO_ROOT}/agents"
-DEST_AGENTS="${HOME}/.claude/agents"
+SRC_SKILLS="${REPO_ROOT}/skills"
+DEST_ROOT="${HOME}/.codewhale/skills"
 
-ALLOWED_AGENTS=(architect astro auditor docs jira mcp rails reviewer rust security slack)
+ALLOWED_SKILLS=(ai architect astro auditor docker docs git-precommit-guard mcp meilisearch mysql node omarchy postgres rails redis reviewer rust security voyage)
 
 PREFIX=""
 INCLUDE=""
@@ -74,23 +75,23 @@ IFS=',' read -ra REQUESTED <<< "$INCLUDE"
 # Validate every requested name against the allowlist
 for name in "${REQUESTED[@]}"; do
   found=0
-  for allowed in "${ALLOWED_AGENTS[@]}"; do
+  for allowed in "${ALLOWED_SKILLS[@]}"; do
     [[ "$name" == "$allowed" ]] && { found=1; break; }
   done
   if [[ $found -eq 0 ]]; then
-    echo "error: unknown agent '$name'" >&2
-    echo "       allowed: ${ALLOWED_AGENTS[*]}" >&2
+    echo "error: unknown skill '$name'" >&2
+    echo "       allowed: ${ALLOWED_SKILLS[*]}" >&2
     exit 2
   fi
 done
 
-mkdir -p "$DEST_AGENTS"
+mkdir -p "$DEST_ROOT"
 
 echo "install.sh"
 echo "  prefix:    $PREFIX"
 echo "  include:   ${REQUESTED[*]}"
-echo "  src:       $SRC_AGENTS"
-echo "  dest:      $DEST_AGENTS"
+echo "  src:       $SRC_SKILLS"
+echo "  dest:      $DEST_ROOT"
 echo "  repo_path: $REPO_PATH"
 [[ $DRY_RUN -eq 1 ]] && echo "  mode:      --dry-run"
 [[ $FORCE   -eq 1 ]] && echo "  mode:      --force"
@@ -101,9 +102,10 @@ echo ""
 declare -a INSTALLED_PATHS=()
 
 for name in "${REQUESTED[@]}"; do
-  src="${SRC_AGENTS}/${name}.md"
-  dest="${DEST_AGENTS}/${PREFIX}-${name}.md"
-  rel_dest="${dest#"${HOME}/"}"
+  src="${SRC_SKILLS}/${name}.md"
+  dest_dir="${DEST_ROOT}/${PREFIX}-${name}"
+  dest="${dest_dir}/SKILL.md"
+  rel_dest="${dest_dir#"${HOME}/"}"
 
   if [[ ! -f "$src" ]]; then
     echo "  SKIP    $rel_dest — source $src missing"
@@ -131,34 +133,37 @@ for name in "${REQUESTED[@]}"; do
     continue
   fi
 
+  mkdir -p "$dest_dir"
   sed \
     -e "s|{{PREFIX}}|${PREFIX}|g" \
     -e "s|{{REPO_NAME}}|${REPO_NAME}|g" \
     -e "s|{{REPO_PATH}}|${REPO_PATH}|g" \
     "$src" > "$dest"
   if [[ -f "$dest" ]]; then
-    echo "  WRITE   $rel_dest"
+    echo "  WRITE   $rel_dest/SKILL.md"
   fi
   INSTALLED_PATHS+=("$dest")
 done
 
-# Prune phase: delete ~/.claude/agents/<prefix>-*.md not in INSTALLED_PATHS
+# Prune phase: delete ~/.codewhale/skills/<prefix>-* dirs not in INSTALLED_PATHS
 if [[ $PRUNE -eq 1 ]]; then
   echo ""
-  echo "prune (scoped to ${PREFIX}-*.md):"
+  echo "prune (scoped to ${PREFIX}-*):"
   shopt -s nullglob
-  for existing in "${DEST_AGENTS}/${PREFIX}-"*.md; do
+  for existing_dir in "${DEST_ROOT}/${PREFIX}-"*; do
+    [[ -d "$existing_dir" ]] || continue
+    existing_skill="${existing_dir}/SKILL.md"
     keep=0
     for installed in "${INSTALLED_PATHS[@]:-}"; do
-      [[ "$existing" == "$installed" ]] && { keep=1; break; }
+      [[ "$existing_skill" == "$installed" ]] && { keep=1; break; }
     done
     if [[ $keep -eq 0 ]]; then
-      rel="${existing#"${HOME}/"}"
+      rel="${existing_dir#"${HOME}/"}"
       if [[ $DRY_RUN -eq 1 ]]; then
-        echo "  WOULD DELETE  $rel"
+        echo "  WOULD DELETE  $rel/"
       else
-        rm "$existing"
-        echo "  DELETE  $rel"
+        rm -rf "$existing_dir"
+        echo "  DELETE  $rel/"
       fi
     fi
   done

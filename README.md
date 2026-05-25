@@ -1,99 +1,100 @@
-# claude-dotfiles
+# agents
 
-Personal Claude Code configuration — agents, commands, skills, and install
-scripts that source-track my Claude workflow across projects.
+Personal CodeWhale skill templates — reusable, role-specific instruction sets
+for the CodeWhale sub-agent dispatch pattern.
 
-The agent definitions in `agents/` are generic templates with `{{PREFIX}}` /
-`{{REPO_NAME}}` / `{{REPO_PATH}}` placeholders. The install script substitutes
-those at install-time and writes prefixed copies to `~/.claude/agents/` so
-multiple projects can coexist on the same machine without name collisions.
+A master CodeWhale session orchestrates by dispatching focused sub-agents
+via `agent_open`. Each sub-agent receives a bounded task (the skill body),
+executes independently (often in parallel with siblings), and returns results.
+The master chooses the model per task — skill templates never enforce one.
 
 ## Layout
 
 ```
-agents/         generic agent templates (rails.md, mcp.md, reviewer.md, …)
-commands/       slash commands (empty for now)
-skills/         Claude Code skills (empty for now)
+skills/         generic skill templates (rails.md, rust.md, reviewer.md, …)
 bin/
-  install.sh    install agents into ~/.claude/ for a given project
-  pull.sh       mirror ~/.claude/<prefix>-*.md back into agents/ as templates
+  install.sh    install skills into ~/.codewhale/skills/ for a given prefix
+  pull.sh       mirror ~/.codewhale/skills/ back into skills/ as templates
+  suggest.sh    analyse a repo and recommend suitable skills
   README.md     script details
+docs/skills/    project-specific overrides for each skill
 LICENSE         proprietary, all rights reserved
 ```
 
 ## Quick start
 
-Every agent is opt-in. Nothing is implied — list each one explicitly via
+Every skill is opt-in. Nothing is implied — list each one explicitly via
 `--include` so installs are explicit and reviewable.
 
-Install pito's full agent set (the most advanced project — Rails + Rust +
-MCP + Astro):
+Install pito's full skill set:
 
 ```bash
-bin/install.sh pito --include architect,auditor,docs,mcp,rails,reviewer,rust,security,astro
+bin/install.sh pito --include architect,astro,auditor,docs,mcp,rails,reviewer,rust,security,node,omarchy,postgres,ai
 ```
 
-Install fepra's set (Rails-only client project, no Rust / MCP / Astro, with Jira + Slack workflow):
+Install a Rails project with search:
 
 ```bash
-bin/install.sh fepra --include architect,auditor,docs,jira,rails,reviewer,security,slack
+bin/install.sh fepra2 --include architect,auditor,docs,postgres,rails,reviewer,security,meilisearch
 ```
 
-Both runs target `~/.claude/agents/` with the prefix prepended:
-
-- `~/.claude/agents/pito-rails.md`, `pito-mcp.md`, `pito-rust.md`, …
-- `~/.claude/agents/fepra-rails.md`, `fepra-docs.md`, …
-
-Restart Claude Code after install so the new agent registry is picked up.
+Skills are then discoverable by CodeWhale and loadable via `load_skill`.
 
 ## Update workflow
 
-Edit a generic source file (e.g. `agents/rails.md`) once. Then re-install for
+Edit a generic source file (e.g. `skills/rails.md`) once. Then re-install for
 each project that uses it:
 
 ```bash
 bin/install.sh pito --include rails
-bin/install.sh fepra --include rails
+bin/install.sh fepra2 --include rails
 ```
 
-Both projects pick up the change. Commit + push the dotfiles repo so other
-machines sync.
+Both projects pick up the change. Commit + push so other machines sync.
 
-If an agent file is edited via the Claude Code UI (which writes to
-`~/.claude/agents/<prefix>-<agent>.md` directly), `bin/pull.sh` reverse-templates
-that change back into the generic source.
+If a skill file is edited via runtime (which writes to
+`~/.codewhale/skills/<prefix>-<name>/SKILL.md` directly), `bin/pull.sh`
+reverse-templates that change back into the generic source.
 
-## Agent catalog
+## Skill catalog
 
-Generic source agents — each one applies a single role across projects.
-Project-specific behaviour comes from the project's own `CLAUDE.md`, NOT from
-the agent file.
+Generic source skills — each one applies a single role across projects.
+Project-specific behaviour comes from the project's own `AGENTS.md`, NOT from
+the skill file.
 
-| Source         | Role                                                      |
-| -------------- | --------------------------------------------------------- |
-| `architect.md` | Spec writer + master-agent planner / reviewer / committer |
-| `astro.md`     | Astro landing page (Cloudflare Pages)                     |
-| `auditor.md`   | Read-only state auditor — gap analysis, drift checks      |
-| `docs.md`      | Markdown / docs / playbooks / log keeper                  |
-| `jira.md`      | Jira workflow — timer, transitions, worklogs, comments    |
-| `mcp.md`       | MCP server tool surface                                   |
-| `rails.md`     | Rails feature implementation                              |
-| `reviewer.md`  | Pipeline gates + manual playbook author                   |
-| `rust.md`      | Rust crate / CLI / library implementation                 |
-| `security.md`  | Security review pass — sensitive changes only             |
-| `slack.md`     | Slack notifications — drafts + sends (after confirmation) |
+| Skill                     | Role                                                             |
+| ------------------------- | ---------------------------------------------------------------- |
+| `ai.md`                   | DeepSeek platform expert — API, SDK, model selection, cost       |
+| `architect.md`            | Spec writer — feature specs before implementation                |
+| `astro.md`                | Astro landing page (Cloudflare Pages)                            |
+| `auditor.md`              | Read-only state auditor — gap analysis, drift checks             |
+| `docs.md`                 | Documentation keeper — keeps docs in sync with reality           |
+| `docker.md`               | Docker — containers, compose, multi-stage builds, CI/CD          |
+| `git-precommit-guard.md`  | Pre-commit checks — lint, secrets, commit message validation     |
+| `mcp.md`                  | MCP server tool surface                                          |
+| `meilisearch.md`          | Meilisearch search engine — indexing, queries, configuration     |
+| `mysql.md`                | MySQL / MariaDB — schema, migrations, queries, optimisation      |
+| `node.md`                 | Node.js / TypeScript feature implementation                      |
+| `omarchy.md`              | Omarchy Linux system management — Arch, Hyprland, config         |
+| `postgres.md`             | Database agent — schema, migrations, queries, optimisation       |
+| `rails.md`                | Rails feature implementation (backend / web)                     |
+| `redis.md`                | Redis — caching, queues, pub/sub, rate limiting, session store   |
+| `reviewer.md`             | Code reviewer — pipeline gates + manual test playbooks           |
+| `rust.md`                 | Rust crate / CLI / library implementation                        |
+| `security.md`             | Security analyst — threat review, vulnerability assessment       |
+| `voyage.md`               | Voyage AI embeddings — vector search, RAG pipelines              |
 
-## Project-specific rules live in the project's CLAUDE.md
+## Project-specific rules live in the project's AGENTS.md
 
-The agents are intentionally project-agnostic. Conventions like "yes/no string
-booleans at boundaries" or "use ConfirmModalComponent for confirmations" live
-in the project's own `CLAUDE.md` (or referenced docs under `docs/`). Each
-agent's first instruction is "read `{{REPO_PATH}}/CLAUDE.md` and follow its
-rules before acting."
+The skills are intentionally project-agnostic. Conventions like "use yes/no
+string booleans at boundaries" or "destructive flows route through
+ConfirmModalComponent" live in the project's own `AGENTS.md` (or referenced
+docs under `docs/skills/`). Each skill's first instruction is "read
+`{{REPO_PATH}}/AGENTS.md` and follow its rules before acting."
 
 ## Source of truth
 
-- Edit agents here, then `install.sh` to propagate.
-- Don't edit `~/.claude/agents/<prefix>-*.md` directly long-term — they're
-  regenerated on every install. Use `pull.sh` to mirror back ad-hoc edits.
+- Edit skills here, then `install.sh` to propagate.
+- Don't edit `~/.codewhale/skills/` directly long-term — they're regenerated
+  on every install. Use `pull.sh` to mirror back ad-hoc edits.
 - Commit + push every meaningful change so other machines stay in sync.

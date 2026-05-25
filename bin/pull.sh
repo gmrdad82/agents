@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 #
-# pull.sh — mirror ~/.claude/agents/<prefix>-*.md back into agents/ as
-# generic templates with the {{REPO_PATH}} placeholder restored.
+# pull.sh — mirror ~/.codewhale/skills/<prefix>-*/SKILL.md back into
+# skills/ as generic templates with the {{REPO_PATH}} placeholder restored.
 #
 # Usage:
 #   pull.sh <prefix>
 #   pull.sh <prefix> --dry-run
 #
 # Behaviour:
-#   - Reads every ~/.claude/agents/<prefix>-<name>.md whose <name> is in
-#     the allowlist (architect, astro, auditor, docs, jira, mcp, rails,
-#     reviewer, rust, security, slack).
+#   - Reads every ~/.codewhale/skills/<prefix>-<name>/SKILL.md whose <name>
+#     is in the allowlist.
 #   - Reverse-substitutes the absolute repo path (~/Dev/<prefix>) with
-#     {{REPO_PATH}}, then writes to agents/<name>.md (overwriting).
+#     {{REPO_PATH}}, then writes to skills/<name>.md (overwriting).
 #
 # IMPORTANT — substitution scope:
 #   - Only {{REPO_PATH}} is substituted automatically. The home-prefixed
@@ -33,10 +32,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SRC_AGENTS="${HOME}/.claude/agents"
-DEST_AGENTS="${REPO_ROOT}/agents"
+SRC_ROOT="${HOME}/.codewhale/skills"
+DEST_SKILLS="${REPO_ROOT}/skills"
 
-ALLOWED_AGENTS=(architect astro auditor docs jira mcp rails reviewer rust security slack)
+ALLOWED_SKILLS=(ai architect astro auditor docker docs git-precommit-guard mcp meilisearch mysql node omarchy postgres rails redis reviewer rust security voyage)
 
 PREFIX=""
 DRY_RUN=0
@@ -68,33 +67,34 @@ done
 
 REPO_PATH="${HOME}/Dev/${PREFIX}"
 
-mkdir -p "$DEST_AGENTS"
+mkdir -p "$DEST_SKILLS"
 
 echo "pull.sh"
 echo "  prefix:    $PREFIX"
-echo "  src glob:  $SRC_AGENTS/${PREFIX}-*.md"
-echo "  dest:      $DEST_AGENTS"
+echo "  src glob:  $SRC_ROOT/${PREFIX}-*/SKILL.md"
+echo "  dest:      $DEST_SKILLS"
 echo "  repo_path: $REPO_PATH (will be reverse-substituted with {{REPO_PATH}})"
 [[ $DRY_RUN -eq 1 ]] && echo "  mode:      --dry-run"
 echo ""
 
 shopt -s nullglob
 matched=0
-for src in "${SRC_AGENTS}/${PREFIX}-"*.md; do
+for src in "${SRC_ROOT}/${PREFIX}-"*/SKILL.md; do
   matched=1
-  basename="$(basename "$src" .md)"
-  name="${basename#"${PREFIX}-"}"
+  dirname_dir="$(dirname "$src")"           # e.g. ~/.codewhale/skills/pito-rails
+  dirname_base="$(basename "$dirname_dir")" # e.g. pito-rails
+  name="${dirname_base#"${PREFIX}-"}"       # e.g. rails
 
   found=0
-  for allowed in "${ALLOWED_AGENTS[@]}"; do
+  for allowed in "${ALLOWED_SKILLS[@]}"; do
     [[ "$name" == "$allowed" ]] && { found=1; break; }
   done
   if [[ $found -eq 0 ]]; then
-    echo "  SKIP    ${basename}.md — '${name}' not in allowlist"
+    echo "  SKIP    ${dirname_base}/ — '${name}' not in allowlist"
     continue
   fi
 
-  dest="${DEST_AGENTS}/${name}.md"
+  dest="${DEST_SKILLS}/${name}.md"
   rel_dest="${dest#"${HOME}/"}"
 
   if [[ $DRY_RUN -eq 1 ]]; then
@@ -112,7 +112,7 @@ done
 shopt -u nullglob
 
 if [[ $matched -eq 0 ]]; then
-  echo "  (no files matched ${PREFIX}-*.md in $SRC_AGENTS)"
+  echo "  (no files matched ${PREFIX}-*/SKILL.md in $SRC_ROOT)"
 fi
 
 echo ""
