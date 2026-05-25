@@ -62,27 +62,27 @@ Generic source skills — each one applies a single role across projects.
 Project-specific behaviour comes from the project's own `AGENTS.md`, NOT from
 the skill file.
 
-| Skill                     | Role                                                             |
-| ------------------------- | ---------------------------------------------------------------- |
-| `ai.md`                   | DeepSeek platform expert — API, SDK, model selection, cost       |
-| `architect.md`            | Spec writer — feature specs before implementation                |
-| `astro.md`                | Astro landing page (Cloudflare Pages)                            |
-| `auditor.md`              | Read-only state auditor — gap analysis, drift checks             |
-| `docs.md`                 | Documentation keeper — keeps docs in sync with reality           |
-| `docker.md`               | Docker — containers, compose, multi-stage builds, CI/CD          |
-| `git-precommit-guard.md`  | Pre-commit checks — lint, secrets, commit message validation     |
-| `mcp.md`                  | MCP server tool surface                                          |
-| `meilisearch.md`          | Meilisearch search engine — indexing, queries, configuration     |
-| `mysql.md`                | MySQL / MariaDB — schema, migrations, queries, optimisation      |
-| `node.md`                 | Node.js / TypeScript feature implementation                      |
-| `omarchy.md`              | Omarchy Linux system management — Arch, Hyprland, config         |
-| `postgres.md`             | Database agent — schema, migrations, queries, optimisation       |
-| `rails.md`                | Rails feature implementation (backend / web)                     |
-| `redis.md`                | Redis — caching, queues, pub/sub, rate limiting, session store   |
-| `reviewer.md`             | Code reviewer — pipeline gates + manual test playbooks           |
-| `rust.md`                 | Rust crate / CLI / library implementation                        |
-| `security.md`             | Security analyst — threat review, vulnerability assessment       |
-| `voyage.md`               | Voyage AI embeddings — vector search, RAG pipelines              |
+| Skill                    | Role                                                           |
+| ------------------------ | -------------------------------------------------------------- |
+| `ai.md`                  | DeepSeek platform expert — API, SDK, model selection, cost     |
+| `architect.md`           | Spec writer — feature specs before implementation              |
+| `astro.md`               | Astro landing page (Cloudflare Pages)                          |
+| `auditor.md`             | Read-only state auditor — gap analysis, drift checks           |
+| `docs.md`                | Documentation keeper — keeps docs in sync with reality         |
+| `docker.md`              | Docker — containers, compose, multi-stage builds, CI/CD        |
+| `git-precommit-guard.md` | Pre-commit checks — lint, secrets, commit message validation   |
+| `mcp.md`                 | MCP server tool surface                                        |
+| `meilisearch.md`         | Meilisearch search engine — indexing, queries, configuration   |
+| `mysql.md`               | MySQL / MariaDB — schema, migrations, queries, optimisation    |
+| `node.md`                | Node.js / TypeScript feature implementation                    |
+| `omarchy.md`             | Omarchy Linux system management — Arch, Hyprland, config       |
+| `postgres.md`            | Database agent — schema, migrations, queries, optimisation     |
+| `rails.md`               | Rails feature implementation (backend / web)                   |
+| `redis.md`               | Redis — caching, queues, pub/sub, rate limiting, session store |
+| `reviewer.md`            | Code reviewer — pipeline gates + manual test playbooks         |
+| `rust.md`                | Rust crate / CLI / library implementation                      |
+| `security.md`            | Security analyst — threat review, vulnerability assessment     |
+| `voyage.md`              | Voyage AI embeddings — vector search, RAG pipelines            |
 
 ## Project-specific rules live in the project's AGENTS.md
 

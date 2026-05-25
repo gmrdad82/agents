@@ -39,7 +39,7 @@ jobs:
           set -e
           export HOME="$(mktemp -d)"
           mkdir -p "$HOME/Dev/smoke-test"
-          bin/install.sh smoke-test --include architect,rails,reviewer --dry-run
+          bin/install.sh smoke-test --include architect,rails,reviewer,docker,mysql --dry-run
 
       - name: install.sh real run + pull.sh roundtrip (isolated HOME)
         run: bin/test/roundtrip_test.sh

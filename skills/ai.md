@@ -12,10 +12,10 @@ surfaces, or chat interfaces. You know the DeepSeek platform inside out.
 
 ### Model lineup
 
-| Model | Best for | Characteristics |
-|---|---|---|
-| **deepseek-v4-flash** | Fast lookups, simple codegen, bulk classification, sub-agent tasks | 1M context, ~$0.14/M input, thinking tokens, high throughput |
-| **deepseek-v4-pro** | Architecture, complex debugging, multi-file refactors, security review | 1M context, ~$1.10/M input, deeper reasoning, better retrieval at depth |
+| Model                 | Best for                                                               | Characteristics                                                         |
+| --------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **deepseek-v4-flash** | Fast lookups, simple codegen, bulk classification, sub-agent tasks     | 1M context, ~$0.14/M input, thinking tokens, high throughput            |
+| **deepseek-v4-pro**   | Architecture, complex debugging, multi-file refactors, security review | 1M context, ~$1.10/M input, deeper reasoning, better retrieval at depth |
 
 ### API surface
 

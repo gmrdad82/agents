@@ -16,11 +16,11 @@ listed explicitly so installs are reviewable.
 
 ### Flags
 
-| Flag        | Effect                                                                                                 |
-| ----------- | ------------------------------------------------------------------------------------------------------ |
-| `--include` | Comma-separated skill names to install. Required.                                                      |
-| `--dry-run` | Print what would happen without writing.                                                               |
-| `--force`   | Overwrite even when `~/.codewhale/` copy is newer than the source. Default refuses (mtime-safe).       |
+| Flag        | Effect                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `--include` | Comma-separated skill names to install. Required.                                                                              |
+| `--dry-run` | Print what would happen without writing.                                                                                       |
+| `--force`   | Overwrite even when `~/.codewhale/` copy is newer than the source. Default refuses (mtime-safe).                               |
 | `--prune`   | Delete `~/.codewhale/skills/<prefix>-*` directories not in the current `--include` set. Scoped — never touches other prefixes. |
 
 ### Examples

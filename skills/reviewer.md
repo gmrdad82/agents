@@ -57,14 +57,14 @@ validation."
    abstractions, copy-paste duplication, missing error handling, and
    adherence to the spec's acceptance criteria.
 3. **The project's test runner** (e.g., `bundle exec rspec` for Rails, `cargo
-   test` for Rust crates, etc., per the project's `AGENTS.md`). Full suite, not
+test` for Rust crates, etc., per the project's `AGENTS.md`). Full suite, not
    just new specs. Report pass / fail / skipped counts.
 4. **CI status check** — if the project uses GitHub Actions, run
    `gh run list --branch main --limit 3 --json conclusion,headBranch,name`
    and confirm the latest run on the working branch is green. Report any
    failures and link the failing workflow name.
 5. **Security static analysis** the project declares (e.g., `bin/brakeman -q
-   -w2` for Rails). Report new findings; ignore findings already documented in
+-w2` for Rails). Report new findings; ignore findings already documented in
    the phase's accepted-risk file.
 6. **Dependency audit** the project declares (e.g.,
    `bundle exec bundler-audit check --update`, `cargo audit`). Report any new

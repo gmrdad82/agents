@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 #
-# agent_frontmatter_lint.sh — verifies every agents/*.md has YAML
+# agent_frontmatter_lint.sh — verifies every skills/*.md has YAML
 # frontmatter with `name: {{PREFIX}}-<basename>` matching the file's
-# basename. Catches refactor drift where an agent gets renamed without
+# basename. Catches refactor drift where a skill gets renamed without
 # updating its self-reference.
 #
 # Frontmatter shape required:
 #   ---
 #   name: {{PREFIX}}-<basename>
 #   description: ...
-#   ...
 #   ---
 #
 # Exit codes:
@@ -19,15 +18,15 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SRC_AGENTS="${REPO_ROOT}/agents"
+SRC_SKILLS="${REPO_ROOT}/skills"
 
 echo "agent_frontmatter_lint.sh"
-echo "  scanning: ${SRC_AGENTS}"
+echo "  scanning: ${SRC_SKILLS}"
 echo ""
 
 FAILED=0
 
-for f in "${SRC_AGENTS}"/*.md; do
+for f in "${SRC_SKILLS}"/*.md; do
   basename="$(basename "$f" .md)"
   expected_name="{{PREFIX}}-${basename}"
 

@@ -25,15 +25,15 @@ rules apply.
 
 ## Omarchy architecture
 
-| Component | Purpose | Config Location |
-|-----------|---------|-----------------|
-| **Arch Linux** | Base OS | `/etc/`, `~/.config/` |
-| **Hyprland** | Wayland compositor/WM | `~/.config/hypr/` |
-| **Waybar** | Status bar | `~/.config/waybar/` |
-| **Walker** | App launcher | `~/.config/walker/` |
-| **Alacritty/Foot/Kitty/Ghostty** | Terminals | `~/.config/<terminal>/` |
-| **Mako** | Notifications | `~/.config/mako/` |
-| **SwayOSD** | On-screen display | `~/.config/swayosd/` |
+| Component                        | Purpose               | Config Location         |
+| -------------------------------- | --------------------- | ----------------------- |
+| **Arch Linux**                   | Base OS               | `/etc/`, `~/.config/`   |
+| **Hyprland**                     | Wayland compositor/WM | `~/.config/hypr/`       |
+| **Waybar**                       | Status bar            | `~/.config/waybar/`     |
+| **Walker**                       | App launcher          | `~/.config/walker/`     |
+| **Alacritty/Foot/Kitty/Ghostty** | Terminals             | `~/.config/<terminal>/` |
+| **Mako**                         | Notifications         | `~/.config/mako/`       |
+| **SwayOSD**                      | On-screen display     | `~/.config/swayosd/`    |
 
 ## Critical safety rules
 
@@ -48,6 +48,7 @@ rules apply.
 ## Command reference
 
 Prefer the `omarchy` CLI form over raw hyprctl commands:
+
 - `omarchy commands` — list all commands
 - `omarchy theme set <name>` — change theme
 - `omarchy theme list` / `omarchy theme current` — list/current

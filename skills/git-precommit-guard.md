@@ -43,6 +43,7 @@ rather than collecting all — a single blocker is enough to stop the commit.
 ### 1. Debugging artifacts
 
 Search the staged diff for:
+
 - `binding.pry`, `byebug`, `debugger`, `console.log()`, `console.warn()`,
   `console.error()`, `print()`, `puts`, `p `, `pp `, `IO.inspect`, `println`,
   `System.out.println`, `# TODO:`, `# FIXME:`, `# HACK:`, `// TODO:`, `// FIXME:`
@@ -54,6 +55,7 @@ If found: **BLOCKED** — list file:line for each occurrence.
 ### 2. Secrets in the diff
 
 Search the staged diff for:
+
 - API keys, tokens, passwords, connection strings with credentials.
 - `.env` files (unless the project's `AGENTS.md` explicitly allows tracked
   `.env.example` files).
@@ -76,6 +78,7 @@ If found: **BLOCKED** — list the file, size, and recommendation (gitignore or
 ### 4. Lint
 
 Run the project's linter on staged files, if available:
+
 - Rails: `bundle exec rubocop` on staged `.rb` files.
 - Rust: `cargo clippy -D warnings` on the crate.
 - Node: `npx eslint` on staged `.ts`/`.js` files.
@@ -85,6 +88,7 @@ If lint errors exist on staged lines: **BLOCKED** — report the errors.
 ### 5. Commit message format
 
 If the master agent provides a commit message proposal, check:
+
 - The message is one line (50-72 chars) unless there's a body.
 - The first word is a lowercase imperative verb (add, fix, remove, update,
   refactor, rename, bump, etc.).
@@ -97,6 +101,7 @@ If the check fails: **BLOCKED** — suggest the corrected format.
 ### 6. CI workflow syntax (when .github/ files change)
 
 If the staged diff includes `.github/workflows/` files:
+
 - Validate YAML syntax with `python3 -c "import yaml; yaml.safe_load(open('$file'))"`.
 - Check for required fields: `name`, `on`, `jobs`, `runs-on`, `steps`.
 - Verify no hardcoded secrets in `env:` blocks.
@@ -106,6 +111,7 @@ If validation fails: **BLOCKED** — report the specific file and syntax error.
 ### 7. File permission check
 
 Search the staged diff for:
+
 - Executable bit added to non-script files (`.md`, `.txt`, `.rb`, `.ts`, etc.
   unless they have a shebang).
 - Symlinks that point outside the repo.

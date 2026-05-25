@@ -6,7 +6,7 @@
 # Procedure:
 #   1. Run install.sh against an isolated $HOME with a fake prefix.
 #   2. Run pull.sh against the same isolated $HOME.
-#   3. Diff the original agents/ source vs the pulled output, masking
+#   3. Diff the original skills/ source vs the pulled output, masking
 #      the {{PREFIX}} / {{REPO_NAME}} lines (which pull.sh deliberately
 #      does NOT reverse-substitute — see pull.sh comments).
 #   4. The diff (after masking) should be empty. {{REPO_PATH}}
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SRC_AGENTS="${REPO_ROOT}/agents"
+SRC_SKILLS="${REPO_ROOT}/skills"
 PREFIX="roundtrip"
 PULLED_DIR_TMP=""
 
@@ -31,7 +31,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Sandbox HOME so we never touch the user's real ~/.claude/.
+# Sandbox HOME so we never touch the user's real ~/.codewhale/.
 SANDBOX_HOME="$(mktemp -d)"
 export HOME="${SANDBOX_HOME}"
 mkdir -p "${HOME}/Dev/${PREFIX}"
@@ -41,10 +41,10 @@ echo "  prefix:       ${PREFIX}"
 echo "  sandbox HOME: ${SANDBOX_HOME}"
 echo ""
 
-# Build the install set from every source agent — the test exercises every
+# Build the install set from every source skill — the test exercises every
 # template, not a hand-picked subset.
 INCLUDE_LIST=""
-for f in "${SRC_AGENTS}"/*.md; do
+for f in "${SRC_SKILLS}"/*.md; do
   name="$(basename "$f" .md)"
   if [[ -z "$INCLUDE_LIST" ]]; then
     INCLUDE_LIST="$name"
@@ -62,46 +62,42 @@ echo "step 1 — install.sh (real run into sandbox HOME)"
 }
 echo ""
 
-# Verify each expected file landed.
-for f in "${SRC_AGENTS}"/*.md; do
+# Verify each expected skill directory landed.
+for f in "${SRC_SKILLS}"/*.md; do
   name="$(basename "$f" .md)"
-  expected="${HOME}/.claude/agents/${PREFIX}-${name}.md"
+  expected="${HOME}/.codewhale/skills/${PREFIX}-${name}/SKILL.md"
   if [[ ! -f "${expected}" ]]; then
     echo "FAIL: ${expected} not created by install" >&2
     exit 2
   fi
 done
-echo "  ✓ all expected ${PREFIX}-*.md files created in sandbox"
+echo "  ✓ all expected ${PREFIX}-*/SKILL.md files created in sandbox"
 echo ""
 
 echo "step 2 — pull.sh (mirror runtime back into a tmp dir)"
-# pull.sh writes back to the repo's agents/ dir by default. We don't want
-# that for a CI test — copy bin/pull.sh into a temp checkout, or redirect
-# its output. Simpler: temporarily move repo agents/, run pull, compare,
-# restore. To keep things idempotent we use a separate compare-only path.
 PULLED_DIR_TMP="$(mktemp -d)"
-mkdir -p "${PULLED_DIR_TMP}/agents"
+mkdir -p "${PULLED_DIR_TMP}/skills"
 
-# Run pull.sh but redirect its REPO_ROOT-derived destination via a wrapper:
-# replicate pull.sh's logic inline against the tmp dir. The wrapper reads
-# ~/.claude/agents/<prefix>-*.md and writes to ${PULLED_DIR_TMP}/agents/.
+# Replicate pull.sh's logic inline against the tmp dir.
 REPO_PATH="${HOME}/Dev/${PREFIX}"
 shopt -s nullglob
-for src in "${HOME}/.claude/agents/${PREFIX}-"*.md; do
-  basename="$(basename "$src" .md)"
-  name="${basename#"${PREFIX}-"}"
-  dest="${PULLED_DIR_TMP}/agents/${name}.md"
+for src_dir in "${HOME}/.codewhale/skills/${PREFIX}-"*/; do
+  src="${src_dir}SKILL.md"
+  [[ -f "$src" ]] || continue
+  dirname_base="$(basename "$src_dir")"  # e.g. roundtrip-rails
+  name="${dirname_base#"${PREFIX}-"}"    # e.g. rails
+  dest="${PULLED_DIR_TMP}/skills/${name}.md"
   sed -e "s|${REPO_PATH}|{{REPO_PATH}}|g" "$src" > "$dest"
 done
 shopt -u nullglob
-echo "  ✓ pulled ${PREFIX}-*.md files into ${PULLED_DIR_TMP}/agents/"
+echo "  ✓ pulled ${PREFIX}-*/SKILL.md files into ${PULLED_DIR_TMP}/skills/"
 echo ""
 
 echo "step 3 — diff (masking {{PREFIX}} / {{REPO_NAME}} drift)"
 LOSSY=0
-for src in "${SRC_AGENTS}"/*.md; do
+for src in "${SRC_SKILLS}"/*.md; do
   name="$(basename "$src" .md)"
-  pulled="${PULLED_DIR_TMP}/agents/${name}.md"
+  pulled="${PULLED_DIR_TMP}/skills/${name}.md"
 
   # Mask the prefix-substituted strings on both sides so we compare like
   # for like. The substitution we expect to roundtrip is {{REPO_PATH}};
