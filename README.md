@@ -14,14 +14,15 @@ repo.
 Project-specific overrides live alongside the generated file at
 `<project>/docs/EXTRA.md`. The agents defer to it.
 
-> **Heads up — this is my personal setup.**
->
-> Public so anyone can read it, fork it, or take ideas from it. I do
-> not promise support. Issues may sit unanswered. PRs land at my pace
-> and only if they fit how I work. No SLAs, no commitments. Use freely
-> under the MIT license; expect nothing in return.
->
-> Not affiliated with Anthropic, OpenCode, or any of the named tools.
+## Project status
+
+This is my personal setup. Public so anyone can read it, fork it, or
+take ideas from it. I do not promise support. Issues may sit
+unanswered. PRs land at my pace and only if they fit how I work. No
+SLAs, no commitments. Use freely under the MIT license; expect
+nothing in return.
+
+Not affiliated with Anthropic, OpenCode, or any of the named tools.
 
 ## Quick start
 
