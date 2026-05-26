@@ -178,8 +178,7 @@ has_file "omarchy.sh" && add omarchy "omarchy.sh in project"
 
 names=()
 for n in "${!REASONS[@]}"; do names+=("$n"); done
-IFS=$'\n' sorted_names=($(printf '%s\n' "${names[@]}" | sort))
-unset IFS
+mapfile -t sorted_names < <(printf '%s\n' "${names[@]}" | sort)
 
 echo "Detected stack and recommendations for $TARGET:" >&2
 for n in "${sorted_names[@]}"; do
