@@ -1,174 +1,452 @@
 #!/usr/bin/env bash
-#
-# install.sh — install templated skills from this repo into
-# ~/.codewhale/skills/ under a project prefix.
+# install.sh — concatenate selected agents into <project>/AGENTS.md
 #
 # Usage:
-#   install.sh <prefix> --include <name1>,<name2>,...
-#   install.sh <prefix> --include <names> --dry-run
-#   install.sh <prefix> --include <names> --force
-#   install.sh <prefix> --include <names> --prune
+#   bin/install.sh <path/to/project>
+#                  [--include name1,name2,...]
+#                  [--mode update|append|override]
+#                  [--dry-run]
+#                  [--with-extra-stub]
+#                  [-h|--help]
 #
-# Every skill is opt-in. The --include flag is REQUIRED; nothing installs
-# by default. The script substitutes {{PREFIX}}, {{REPO_NAME}}, {{REPO_PATH}}
-# placeholders in each source file and writes a skill subdirectory with
-# SKILL.md.
+# Modes:
+#   update    (default) — replace existing agent blocks with current source,
+#                         add any new agents from --include, regenerate the
+#                         banner and TOC. Leaves any non-marker content
+#                         (custom preamble, etc.) untouched.
+#   append    — only add agents not already present in <project>/AGENTS.md.
+#                Never overwrites an existing agent block.
+#   override  — rebuild <project>/AGENTS.md from scratch (destructive).
 #
-# Safety:
-#   - Refuses to overwrite a ~/.codewhale/ file newer than the source unless
-#     --force is passed.
-#   - --prune deletes ~/.codewhale/skills/<prefix>-* directories that aren't
-#     in the current --include set. Scoped to THIS prefix only — never touches
-#     other projects.
-#   - --dry-run previews everything without writing or deleting.
-#   - Idempotent.
+# Nothing is written outside <path/to/project>. Source agents live in
+# <repo>/agents/ alongside this script's parent directory.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SRC_SKILLS="${REPO_ROOT}/skills"
-DEST_ROOT="${HOME}/.codewhale/skills"
-
-ALLOWED_SKILLS=(ai architect astro auditor docker docs git-precommit-guard mcp meilisearch mysql node omarchy postgres rails redis reviewer rust security voyage)
-
-PREFIX=""
-INCLUDE=""
-DRY_RUN=0
-FORCE=0
-PRUNE=0
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+AGENTS_DIR="$REPO_ROOT/agents"
 
 usage() {
-  sed -n '2,25p' "$0"
-  exit "${1:-0}"
+  sed -n '2,/^set -/p' "$0" | sed -n 's/^# \{0,1\}//p' | sed '$d'
 }
+
+# -------- arg parsing --------
+
+TARGET=""
+INCLUDE=""
+MODE="update"
+DRY_RUN=0
+WITH_EXTRA_STUB=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --include)  INCLUDE="${2:-}"; shift 2 ;;
-    --dry-run)  DRY_RUN=1; shift ;;
-    --force)    FORCE=1;   shift ;;
-    --prune)    PRUNE=1;   shift ;;
-    -h|--help)  usage 0 ;;
-    -*)
-      echo "error: unknown flag '$1'" >&2
-      usage 2 ;;
+    -h|--help) usage; exit 0 ;;
+    --include) INCLUDE="${2:-}"; shift 2 ;;
+    --include=*) INCLUDE="${1#*=}"; shift ;;
+    --mode) MODE="${2:-}"; shift 2 ;;
+    --mode=*) MODE="${1#*=}"; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    --with-extra-stub) WITH_EXTRA_STUB=1; shift ;;
+    --*) echo "unknown flag: $1" >&2; exit 2 ;;
     *)
-      if [[ -z "$PREFIX" ]]; then
-        PREFIX="$1"
+      if [[ -z "$TARGET" ]]; then
+        TARGET="$1"; shift
       else
-        echo "error: unexpected positional arg '$1'" >&2
-        usage 2
+        echo "unexpected positional: $1" >&2; exit 2
       fi
-      shift ;;
+      ;;
   esac
 done
 
-[[ -n "$PREFIX" ]]  || { echo "error: prefix required" >&2; usage 2; }
-[[ -n "$INCLUDE" ]] || { echo "error: --include required (nothing installs by default)" >&2; usage 2; }
+if [[ -z "$TARGET" ]]; then
+  echo "missing required argument: <path/to/project>" >&2
+  echo "run with --help for usage" >&2
+  exit 2
+fi
 
-REPO_PATH="${HOME}/Dev/${PREFIX}"
-REPO_NAME="${PREFIX}"
+case "$MODE" in
+  update|append|override) ;;
+  *) echo "invalid --mode: $MODE (expected update|append|override)" >&2; exit 2 ;;
+esac
 
-IFS=',' read -ra REQUESTED <<< "$INCLUDE"
+if [[ ! -d "$TARGET" ]]; then
+  echo "target is not a directory: $TARGET" >&2
+  exit 2
+fi
 
-# Validate every requested name against the allowlist
-for name in "${REQUESTED[@]}"; do
-  found=0
-  for allowed in "${ALLOWED_SKILLS[@]}"; do
-    [[ "$name" == "$allowed" ]] && { found=1; break; }
-  done
-  if [[ $found -eq 0 ]]; then
-    echo "error: unknown skill '$name'" >&2
-    echo "       allowed: ${ALLOWED_SKILLS[*]}" >&2
-    exit 2
-  fi
-done
+TARGET="$(cd "$TARGET" && pwd)"
+AGENTS_MD="$TARGET/AGENTS.md"
 
-mkdir -p "$DEST_ROOT"
+# -------- resolve agent list --------
 
-echo "install.sh"
-echo "  prefix:    $PREFIX"
-echo "  include:   ${REQUESTED[*]}"
-echo "  src:       $SRC_SKILLS"
-echo "  dest:      $DEST_ROOT"
-echo "  repo_path: $REPO_PATH"
-[[ $DRY_RUN -eq 1 ]] && echo "  mode:      --dry-run"
-[[ $FORCE   -eq 1 ]] && echo "  mode:      --force"
-[[ $PRUNE   -eq 1 ]] && echo "  mode:      --prune"
-echo ""
+all_agent_names() {
+  find "$AGENTS_DIR" -maxdepth 1 -name '*.md' -printf '%f\n' \
+    | sed 's/\.md$//' \
+    | sort
+}
 
-# Track what we install for the prune phase
-declare -a INSTALLED_PATHS=()
+ALL_AGENTS=()
+while IFS= read -r n; do ALL_AGENTS+=("$n"); done < <(all_agent_names)
 
-for name in "${REQUESTED[@]}"; do
-  src="${SRC_SKILLS}/${name}.md"
-  dest_dir="${DEST_ROOT}/${PREFIX}-${name}"
-  dest="${dest_dir}/SKILL.md"
-  rel_dest="${dest_dir#"${HOME}/"}"
-
-  if [[ ! -f "$src" ]]; then
-    echo "  SKIP    $rel_dest — source $src missing"
-    continue
-  fi
-
-  # mtime safety
-  if [[ -f "$dest" && $FORCE -eq 0 ]]; then
-    src_mtime=$(stat -c %Y "$src")
-    dest_mtime=$(stat -c %Y "$dest")
-    if [[ "$dest_mtime" -gt "$src_mtime" ]]; then
-      echo "  SKIP    $rel_dest — destination newer (use --force)"
-      INSTALLED_PATHS+=("$dest")
-      continue
+RESOLVED=()
+if [[ -z "$INCLUDE" ]]; then
+  RESOLVED=("${ALL_AGENTS[@]}")
+else
+  IFS=',' read -ra parts <<<"$INCLUDE"
+  for p in "${parts[@]}"; do
+    p="${p// /}"
+    [[ -n "$p" ]] || continue
+    if [[ ! -f "$AGENTS_DIR/$p.md" ]]; then
+      echo "unknown agent: $p" >&2
+      echo "available: $(all_agent_names | tr '\n' ' ')" >&2
+      exit 2
     fi
+    RESOLVED+=("$p")
+  done
+fi
+
+if [[ ${#RESOLVED[@]} -eq 0 ]]; then
+  echo "no agents resolved from --include" >&2
+  exit 2
+fi
+
+# -------- helpers --------
+
+sha_of() {
+  sha256sum "$1" | awk '{print $1}'
+}
+
+# Strip YAML frontmatter and demote first H1 to H2.
+extract_body() {
+  local file="$1"
+  awk '
+    BEGIN { state = "scan" }
+    NR == 1 && $0 == "---" { state = "fm"; next }
+    state == "fm" && $0 == "---" { state = "body"; next }
+    state == "fm" { next }
+    state == "scan" { state = "body" }
+    state == "body" && !demoted && /^# / {
+      print "## " substr($0, 3); demoted = 1; next
+    }
+    state == "body" { print }
+  ' "$file"
+}
+
+# Pull H1 title from source (post-frontmatter).
+agent_title() {
+  local file="$AGENTS_DIR/$1.md"
+  awk '
+    NR == 1 && $0 == "---" { in_fm = 1; next }
+    in_fm && $0 == "---" { in_fm = 0; next }
+    in_fm { next }
+    /^# / { sub(/^# /, ""); print; exit }
+  ' "$file"
+}
+
+slugify() {
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr ' ' '-' \
+    | tr -cd 'a-z0-9-'
+}
+
+build_banner() {
+  cat <<'EOF'
+<!-- agents:banner:begin -->
+> Auto-generated by `bin/install.sh` from the agent source repo. Do not
+> hand-edit this file — edit the source agent and re-run `install.sh`.
+>
+> **Project-specific conventions live in `docs/EXTRA.md`.** Every section
+> below defers to that file when there is a conflict.
+<!-- agents:banner:end -->
+EOF
+}
+
+# Build a TOC from a list of agent names read on stdin (one per line).
+build_toc_from_list() {
+  printf '<!-- agents:toc:begin -->\n'
+  printf '## Table of contents\n\n'
+  local n title slug
+  while IFS= read -r n; do
+    [[ -n "$n" ]] || continue
+    title="$(agent_title "$n")"
+    [[ -n "$title" ]] || title="$n"
+    slug="$(slugify "$title")"
+    printf -- '- [%s](#%s)\n' "$title" "$slug"
+  done
+  printf '<!-- agents:toc:end -->\n'
+}
+
+build_block() {
+  local name="$1"
+  local file="$AGENTS_DIR/$name.md"
+  local s
+  s="$(sha_of "$file")"
+  printf '<!-- agents:begin name=%s sha=%s -->\n' "$name" "$s"
+  extract_body "$file"
+  printf '<!-- agents:end name=%s -->\n' "$name"
+}
+
+build_full() {
+  printf '# AGENTS.md\n\n'
+  build_banner
+  printf '\n'
+  printf '%s\n' "$@" | build_toc_from_list
+  printf '\n'
+  local first=1 n
+  for n in "$@"; do
+    if [[ $first -eq 0 ]]; then printf '\n---\n\n'; fi
+    first=0
+    build_block "$n"
+  done
+}
+
+installed_in() {
+  local file="$1"
+  [[ -f "$file" ]] || return 0
+  grep -oE '<!-- agents:begin name=[a-z0-9-]+' "$file" \
+    | sed 's/.*name=//'
+}
+
+upsert_block() {
+  local file="$1" name="$2" blockfile="$3"
+  local tmp
+  tmp="$(mktemp)"
+  if grep -q "<!-- agents:begin name=$name " "$file"; then
+    awk -v name="$name" -v bf="$blockfile" '
+      BEGIN {
+        while ((getline line < bf) > 0) {
+          if (acc != "") acc = acc "\n"
+          acc = acc line
+        }
+        close(bf)
+      }
+      $0 ~ "<!-- agents:begin name=" name " sha=" {
+        print acc; in_block = 1; next
+      }
+      in_block && $0 ~ "<!-- agents:end name=" name " -->" {
+        in_block = 0; next
+      }
+      in_block { next }
+      { print }
+    ' "$file" >"$tmp"
+    mv "$tmp" "$file"
+  else
+    {
+      cat "$file"
+      printf '\n---\n\n'
+      cat "$blockfile"
+    } >"$tmp"
+    mv "$tmp" "$file"
+  fi
+}
+
+upsert_region() {
+  local file="$1" begin="$2" end="$3" regionfile="$4"
+  local tmp
+  tmp="$(mktemp)"
+  if grep -qF "$begin" "$file"; then
+    awk -v begin="$begin" -v endm="$end" -v rf="$regionfile" '
+      BEGIN {
+        while ((getline line < rf) > 0) {
+          if (acc != "") acc = acc "\n"
+          acc = acc line
+        }
+        close(rf)
+      }
+      index($0, begin) > 0 { print acc; in_region = 1; next }
+      in_region && index($0, endm) > 0 { in_region = 0; next }
+      in_region { next }
+      { print }
+    ' "$file" >"$tmp"
+    mv "$tmp" "$file"
+  else
+    {
+      cat "$regionfile"
+      printf '\n'
+      cat "$file"
+    } >"$tmp"
+    mv "$tmp" "$file"
+  fi
+}
+
+show_diff() {
+  local current="$1"
+  local from label
+  if [[ -f "$current" ]]; then
+    from="$current"
+    label="$current"
+  else
+    from="/dev/null"
+    label="(none)"
+  fi
+  diff -u --label "$label" --label "AGENTS.md (proposed)" "$from" - || true
+}
+
+write_extra_stub() {
+  local extra="$TARGET/docs/EXTRA.md"
+  if [[ -f "$extra" ]]; then
+    echo "docs/EXTRA.md already exists — leaving it alone" >&2
+    return 0
+  fi
+  mkdir -p "$TARGET/docs"
+  cat >"$extra" <<'EOF'
+# EXTRA.md
+
+Project-specific conventions that override the generic guidance in
+`AGENTS.md`. Edit freely — `install.sh` never touches this file.
+
+## What to put here
+
+- Hard rules unique to this project (e.g., "all booleans serialize as
+  yes/no strings at API boundaries").
+- Per-agent overrides:
+  - **rails** — view layer, component library, test directory layout.
+  - **postgres** — extensions in use, replica topology, backup tooling.
+  - **reviewer** — quality-gate commands the reviewer must run.
+  - **git** — branch model, commit message style, hooks.
+- Pointers to other docs the agents should read (architecture notes,
+  spec directories, runbooks).
+
+## Stack
+
+<short description of the project's stack — tools, frameworks, versions>
+
+## Conventions
+
+<bullet list of rules that don't fit elsewhere>
+EOF
+  echo "wrote $extra" >&2
+}
+
+# -------- mode dispatch --------
+
+run_override() {
+  local content
+  content="$(build_full "${RESOLVED[@]}")"
+  if [[ $DRY_RUN -eq 1 ]]; then
+    printf '%s' "$content" | show_diff "$AGENTS_MD"
+    return 0
+  fi
+  printf '%s\n' "$content" >"$AGENTS_MD"
+  echo "wrote $AGENTS_MD (override, ${#RESOLVED[@]} agents)" >&2
+}
+
+run_append() {
+  if [[ ! -f "$AGENTS_MD" ]]; then
+    run_override
+    return
+  fi
+
+  local current
+  current="$(installed_in "$AGENTS_MD")"
+  local to_add=() n
+  for n in "${RESOLVED[@]}"; do
+    if ! grep -qx "$n" <<<"$current"; then
+      to_add+=("$n")
+    fi
+  done
+
+  if [[ ${#to_add[@]} -eq 0 ]]; then
+    echo "all requested agents already present — nothing to do" >&2
+    return 0
   fi
 
   if [[ $DRY_RUN -eq 1 ]]; then
-    if [[ -f "$dest" ]]; then
-      echo "  WOULD UPDATE  $rel_dest"
-    else
-      echo "  WOULD CREATE  $rel_dest"
-    fi
-    INSTALLED_PATHS+=("$dest")
-    continue
+    echo "would append: ${to_add[*]}" >&2
+    return 0
   fi
 
-  mkdir -p "$dest_dir"
-  sed \
-    -e "s|{{PREFIX}}|${PREFIX}|g" \
-    -e "s|{{REPO_NAME}}|${REPO_NAME}|g" \
-    -e "s|{{REPO_PATH}}|${REPO_PATH}|g" \
-    "$src" > "$dest"
-  if [[ -f "$dest" ]]; then
-    echo "  WRITE   $rel_dest/SKILL.md"
-  fi
-  INSTALLED_PATHS+=("$dest")
-done
-
-# Prune phase: delete ~/.codewhale/skills/<prefix>-* dirs not in INSTALLED_PATHS
-if [[ $PRUNE -eq 1 ]]; then
-  echo ""
-  echo "prune (scoped to ${PREFIX}-*):"
-  shopt -s nullglob
-  for existing_dir in "${DEST_ROOT}/${PREFIX}-"*; do
-    [[ -d "$existing_dir" ]] || continue
-    existing_skill="${existing_dir}/SKILL.md"
-    keep=0
-    for installed in "${INSTALLED_PATHS[@]:-}"; do
-      [[ "$existing_skill" == "$installed" ]] && { keep=1; break; }
-    done
-    if [[ $keep -eq 0 ]]; then
-      rel="${existing_dir#"${HOME}/"}"
-      if [[ $DRY_RUN -eq 1 ]]; then
-        echo "  WOULD DELETE  $rel/"
-      else
-        rm -rf "$existing_dir"
-        echo "  DELETE  $rel/"
-      fi
-    fi
+  for n in "${to_add[@]}"; do
+    local blkfile
+    blkfile="$(mktemp)"
+    build_block "$n" >"$blkfile"
+    upsert_block "$AGENTS_MD" "$n" "$blkfile"
+    rm -f "$blkfile"
   done
-  shopt -u nullglob
-fi
 
-echo ""
-echo "install.sh: done."
+  local bannerfile
+  bannerfile="$(mktemp)"
+  build_banner >"$bannerfile"
+  upsert_region "$AGENTS_MD" '<!-- agents:banner:begin -->' \
+    '<!-- agents:banner:end -->' "$bannerfile"
+  rm -f "$bannerfile"
+
+  local tocfile
+  tocfile="$(mktemp)"
+  installed_in "$AGENTS_MD" | build_toc_from_list >"$tocfile"
+  upsert_region "$AGENTS_MD" '<!-- agents:toc:begin -->' \
+    '<!-- agents:toc:end -->' "$tocfile"
+  rm -f "$tocfile"
+
+  echo "appended ${#to_add[@]} agent(s): ${to_add[*]}" >&2
+}
+
+run_update() {
+  if [[ ! -f "$AGENTS_MD" ]]; then
+    run_override
+    return
+  fi
+
+  if ! grep -q '<!-- agents:begin name=' "$AGENTS_MD"; then
+    echo "AGENTS.md exists but contains no agent markers." >&2
+    echo "Refusing to update a hand-written file. Use --mode override" >&2
+    echo "to replace it, or --mode append to add agents alongside." >&2
+    exit 2
+  fi
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    local current
+    current="$(installed_in "$AGENTS_MD")"
+    local n status oldsha newsha
+    for n in "${RESOLVED[@]}"; do
+      if grep -qx "$n" <<<"$current"; then
+        oldsha="$(grep -oE "<!-- agents:begin name=$n sha=[a-f0-9]+" "$AGENTS_MD" \
+          | sed 's/.*sha=//')"
+        newsha="$(sha_of "$AGENTS_DIR/$n.md")"
+        if [[ "$oldsha" == "$newsha" ]]; then status="unchanged"
+        else status="update"; fi
+      else
+        status="add"
+      fi
+      printf '%-10s %s\n' "$status" "$n" >&2
+    done
+    return 0
+  fi
+
+  local n
+  for n in "${RESOLVED[@]}"; do
+    local blkfile
+    blkfile="$(mktemp)"
+    build_block "$n" >"$blkfile"
+    upsert_block "$AGENTS_MD" "$n" "$blkfile"
+    rm -f "$blkfile"
+  done
+
+  local bannerfile
+  bannerfile="$(mktemp)"
+  build_banner >"$bannerfile"
+  upsert_region "$AGENTS_MD" '<!-- agents:banner:begin -->' \
+    '<!-- agents:banner:end -->' "$bannerfile"
+  rm -f "$bannerfile"
+
+  local tocfile
+  tocfile="$(mktemp)"
+  installed_in "$AGENTS_MD" | build_toc_from_list >"$tocfile"
+  upsert_region "$AGENTS_MD" '<!-- agents:toc:begin -->' \
+    '<!-- agents:toc:end -->' "$tocfile"
+  rm -f "$tocfile"
+
+  echo "updated $AGENTS_MD (${#RESOLVED[@]} agent(s) processed)" >&2
+}
+
+case "$MODE" in
+  override) run_override ;;
+  append)   run_append ;;
+  update)   run_update ;;
+esac
+
+if [[ $WITH_EXTRA_STUB -eq 1 ]]; then
+  write_extra_stub
+fi

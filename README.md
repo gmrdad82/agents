@@ -1,100 +1,127 @@
 # agents
 
-Personal CodeWhale skill templates — reusable, role-specific instruction sets
-for the CodeWhale sub-agent dispatch pattern.
+[![CI](https://github.com/gmrdad82/agents/actions/workflows/ci.yml/badge.svg)](https://github.com/gmrdad82/agents/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A master CodeWhale session orchestrates by dispatching focused sub-agents
-via `agent_open`. Each sub-agent receives a bounded task (the skill body),
-executes independently (often in parallel with siblings), and returns results.
-The master chooses the model per task — skill templates never enforce one.
+A library of `AGENTS.md`-style instruction files for Claude Code and
+OpenCode. Each agent is a self-contained Markdown file describing the
+conventions, anti-patterns, and verification steps for one topic
+(Rails, PostgreSQL, Tailwind, Kamal, security, etc.). `bin/install.sh`
+concatenates the agents you want into a single `AGENTS.md` at the root
+of your target project, which the tool reads as its prompt for that
+repo.
 
-## Layout
+Project-specific overrides live alongside the generated file at
+`<project>/docs/EXTRA.md`. The agents defer to it.
 
-```
-skills/         generic skill templates (rails.md, rust.md, reviewer.md, …)
-bin/
-  install.sh    install skills into ~/.codewhale/skills/ for a given prefix
-  pull.sh       mirror ~/.codewhale/skills/ back into skills/ as templates
-  suggest.sh    analyse a repo and recommend suitable skills
-  README.md     script details
-docs/skills/    project-specific overrides for each skill
-LICENSE         proprietary, all rights reserved
-```
+> **Heads up — this is my personal setup.**
+>
+> Public so anyone can read it, fork it, or take ideas from it. I do
+> not promise support. Issues may sit unanswered. PRs land at my pace
+> and only if they fit how I work. No SLAs, no commitments. Use freely
+> under the MIT license; expect nothing in return.
+>
+> Not affiliated with Anthropic, OpenCode, or any of the named tools.
 
 ## Quick start
 
-Every skill is opt-in. Nothing is implied — list each one explicitly via
-`--include` so installs are explicit and reviewable.
-
-Install pito's full skill set:
-
 ```bash
-bin/install.sh pito --include architect,astro,auditor,docs,mcp,rails,reviewer,rust,security,node,omarchy,postgres,ai
+# Detect a project's stack and see what's recommended
+bin/suggest.sh ~/Dev/my-rails-app
+
+# Install a focused set with an EXTRA.md scaffold
+bin/install.sh ~/Dev/my-rails-app \
+  --include architect,rails,postgres,redis,reviewer,security,git,github \
+  --with-extra-stub
+
+# What's installed in a project?
+bin/check.sh ~/Dev/my-rails-app
+
+# Did the source drift since install?
+bin/diff.sh ~/Dev/my-rails-app
+
+# Re-sync after editing an agent here
+bin/install.sh ~/Dev/my-rails-app --mode update
 ```
 
-Install a Rails project with search:
+Nothing ever writes outside the target project directory. The library
+has no global install step.
 
-```bash
-bin/install.sh fepra2 --include architect,auditor,docs,postgres,rails,reviewer,security,meilisearch
+## Available agents (24)
+
+| Topic                 | File                     |
+| --------------------- | ------------------------ |
+| Architect             | `agents/architect.md`    |
+| Astro                 | `agents/astro.md`        |
+| AI / LLM / embeddings | `agents/ai.md`           |
+| ActionCable           | `agents/action-cable.md` |
+| Cloudflare            | `agents/cloudflare.md`   |
+| Docker                | `agents/docker.md`       |
+| Docs (Markdown)       | `agents/docs.md`         |
+| Git                   | `agents/git.md`          |
+| GitHub                | `agents/github.md`       |
+| Kamal (+ deploy)      | `agents/kamal.md`        |
+| MCP                   | `agents/mcp.md`          |
+| MySQL                 | `agents/mysql.md`        |
+| Omarchy               | `agents/omarchy.md`      |
+| PostgreSQL            | `agents/postgres.md`     |
+| Rails (Ruby + Rails)  | `agents/rails.md`        |
+| Redis                 | `agents/redis.md`        |
+| Reviewer              | `agents/reviewer.md`     |
+| RSpec                 | `agents/rspec.md`        |
+| Security              | `agents/security.md`     |
+| Shell                 | `agents/shell.md`        |
+| Simplifier            | `agents/simplifier.md`   |
+| Tailwind              | `agents/tailwind.md`     |
+| Turbo                 | `agents/turbo.md`        |
+| Voyage AI             | `agents/voyage.md`       |
+
+## Install modes
+
+- **update** (default) — replace existing agent blocks with current
+  source, add any new agents from `--include`, regenerate banner + TOC.
+  Preserves any hand-written preamble outside the markers.
+- **append** — only add agents not already present. Existing blocks
+  untouched.
+- **override** — rebuild `<project>/AGENTS.md` from scratch.
+  Destructive.
+
+## How it works
+
+Each agent file is plain Markdown with a small YAML frontmatter. When
+installed, `install.sh` strips the frontmatter, demotes the H1 to an
+H2, and wraps the body in invisible marker comments:
+
+```
+<!-- agents:begin name=rails sha=<sha256-of-source> -->
+## Rails
+...
+<!-- agents:end name=rails -->
 ```
 
-Skills are then discoverable by CodeWhale and loadable via `load_skill`.
+Markers let `bin/diff.sh` detect drift between an installed agent and
+its source (the `sha=` attribute matches the source file's hash at
+install time).
 
-## Update workflow
+## Project conventions (this repo)
 
-Edit a generic source file (e.g. `skills/rails.md`) once. Then re-install for
-each project that uses it:
+- Edit `agents/<name>.md` once; re-run `bin/install.sh` against every
+  project that uses it.
+- Markdown wraps at ~80 cols (CI enforces via prettier).
+- Bash scripts: `set -euo pipefail`, shellcheck-clean.
+- See `AGENTS.md` for the full pipeline + rules; `docs/EXTRA.md` for
+  this repo's own overrides.
 
-```bash
-bin/install.sh pito --include rails
-bin/install.sh fepra2 --include rails
-```
+## CI
 
-Both projects pick up the change. Commit + push so other machines sync.
+`.github/workflows/ci.yml`:
 
-If a skill file is edited via runtime (which writes to
-`~/.codewhale/skills/<prefix>-<name>/SKILL.md` directly), `bin/pull.sh`
-reverse-templates that change back into the generic source.
+- prettier `--check '**/*.md'`
+- shellcheck `bin/**/*.sh`
+- `bash -n` on every shell script
+- `bin/test/markers_test.sh` — every agent file has the expected shape
+- `bin/test/install_smoke_test.sh` — install → diff → update cycle
 
-## Skill catalog
+## License
 
-Generic source skills — each one applies a single role across projects.
-Project-specific behaviour comes from the project's own `AGENTS.md`, NOT from
-the skill file.
-
-| Skill                    | Role                                                           |
-| ------------------------ | -------------------------------------------------------------- |
-| `ai.md`                  | DeepSeek platform expert — API, SDK, model selection, cost     |
-| `architect.md`           | Spec writer — feature specs before implementation              |
-| `astro.md`               | Astro landing page (Cloudflare Pages)                          |
-| `auditor.md`             | Read-only state auditor — gap analysis, drift checks           |
-| `docs.md`                | Documentation keeper — keeps docs in sync with reality         |
-| `docker.md`              | Docker — containers, compose, multi-stage builds, CI/CD        |
-| `git-precommit-guard.md` | Pre-commit checks — lint, secrets, commit message validation   |
-| `mcp.md`                 | MCP server tool surface                                        |
-| `meilisearch.md`         | Meilisearch search engine — indexing, queries, configuration   |
-| `mysql.md`               | MySQL / MariaDB — schema, migrations, queries, optimisation    |
-| `node.md`                | Node.js / TypeScript feature implementation                    |
-| `omarchy.md`             | Omarchy Linux system management — Arch, Hyprland, config       |
-| `postgres.md`            | Database agent — schema, migrations, queries, optimisation     |
-| `rails.md`               | Rails feature implementation (backend / web)                   |
-| `redis.md`               | Redis — caching, queues, pub/sub, rate limiting, session store |
-| `reviewer.md`            | Code reviewer — pipeline gates + manual test playbooks         |
-| `rust.md`                | Rust crate / CLI / library implementation                      |
-| `security.md`            | Security analyst — threat review, vulnerability assessment     |
-| `voyage.md`              | Voyage AI embeddings — vector search, RAG pipelines            |
-
-## Project-specific rules live in the project's AGENTS.md
-
-The skills are intentionally project-agnostic. Conventions like "use yes/no
-string booleans at boundaries" or "destructive flows route through
-ConfirmModalComponent" live in the project's own `AGENTS.md` (or referenced
-docs under `docs/skills/`). Each skill's first instruction is "read
-`{{REPO_PATH}}/AGENTS.md` and follow its rules before acting."
-
-## Source of truth
-
-- Edit skills here, then `install.sh` to propagate.
-- Don't edit `~/.codewhale/skills/` directly long-term — they're regenerated
-  on every install. Use `pull.sh` to mirror back ad-hoc edits.
-- Commit + push every meaningful change so other machines stay in sync.
+See `LICENSE`.

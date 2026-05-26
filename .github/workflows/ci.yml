@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   lint:
-    name: lint + scripts + templates
+    name: lint + scripts + agent structure
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,15 +34,8 @@ jobs:
             bash -n "$script"
           done
 
-      - name: install.sh dry-run smoke (isolated HOME)
-        run: |
-          set -e
-          export HOME="$(mktemp -d)"
-          mkdir -p "$HOME/Dev/smoke-test"
-          bin/install.sh smoke-test --include architect,rails,reviewer,docker,mysql --dry-run
+      - name: Agent file structure
+        run: bin/test/markers_test.sh
 
-      - name: install.sh real run + pull.sh roundtrip (isolated HOME)
-        run: bin/test/roundtrip_test.sh
-
-      - name: Agent frontmatter lint
-        run: bin/test/agent_frontmatter_lint.sh
+      - name: install / diff / check / update smoke
+        run: bin/test/install_smoke_test.sh

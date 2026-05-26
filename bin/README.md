@@ -1,127 +1,82 @@
 # bin
 
-Sync scripts for installing skills from this repo into CodeWhale's runtime
-location (`~/.codewhale/skills/`) and mirroring runtime edits back.
+Scripts for managing the AGENTS.md install pipeline. All scripts write
+only inside their target project; none touch user-level paths.
 
-## install.sh
+## Scripts
 
-Installs templated skills into `~/.codewhale/skills/<prefix>-<name>/SKILL.md`.
+### `install.sh <path/to/project>`
 
-```bash
-bin/install.sh <prefix> --include <name1>,<name2>,...
+Concatenate selected agents from `../agents/` into
+`<path/to/project>/AGENTS.md`.
+
+```
+bin/install.sh <path/to/project>
+               [--include name1,name2,...]
+               [--mode update|append|override]
+               [--dry-run]
+               [--with-extra-stub]
 ```
 
-`--include` is REQUIRED. Nothing installs by default. Every skill must be
-listed explicitly so installs are reviewable.
+Modes:
 
-### Flags
+- **update** (default) — replace existing agent blocks with current
+  source, add any new agents from `--include`, regenerate banner +
+  TOC. Leaves any non-marker content (custom preamble) untouched.
+- **append** — only add agents not already present in
+  `<project>/AGENTS.md`. Never overwrites an existing agent block.
+- **override** — rebuild `<project>/AGENTS.md` from scratch.
+  Destructive.
 
-| Flag        | Effect                                                                                                                         |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `--include` | Comma-separated skill names to install. Required.                                                                              |
-| `--dry-run` | Print what would happen without writing.                                                                                       |
-| `--force`   | Overwrite even when `~/.codewhale/` copy is newer than the source. Default refuses (mtime-safe).                               |
-| `--prune`   | Delete `~/.codewhale/skills/<prefix>-*` directories not in the current `--include` set. Scoped — never touches other prefixes. |
+Flags:
 
-### Examples
+- `--include` — comma-separated agent names. Omitted = install every
+  agent in `agents/`.
+- `--dry-run` — print the diff (override) or the plan
+  (update/append); write nothing.
+- `--with-extra-stub` — also scaffold a starter `docs/EXTRA.md` if
+  the project doesn't have one.
 
-Install pito's full skill set:
+### `check.sh <path/to/project>`
 
-```bash
-bin/install.sh pito --include architect,astro,auditor,docs,mcp,rails,reviewer,rust,security,node,omarchy,postgres,ai
-```
+List agents currently installed in `<project>/AGENTS.md`, one per
+line, in install order. Exits 1 if `AGENTS.md` is missing.
 
-Install a Rails project with search:
+### `diff.sh <path/to/project>`
 
-```bash
-bin/install.sh fepra2 --include architect,auditor,docs,postgres,rails,reviewer,security,meilisearch
-```
+Report drift between `<project>/AGENTS.md` and the master agent set:
 
-Preview without writing:
+- **missing** — in `agents/` but not in `<project>/AGENTS.md`.
+- **stale** — in both, but the marker's `sha=` doesn't match the
+  current source.
+- **orphans** — in `<project>/AGENTS.md` but not in `agents/`.
 
-```bash
-bin/install.sh pito --include rails --dry-run
-```
+Exit code 0 if in sync; non-zero otherwise (CI-friendly).
 
-Prune orphans (e.g., after dropping a skill from your --include set):
+### `suggest.sh <path/to/project>`
 
-```bash
-bin/install.sh pito --include rails,reviewer --prune
-# → deletes pito-architect, pito-rust, etc., keeps pito-rails + pito-reviewer.
-```
+Walk the project for known stack markers (Gemfile, package.json,
+Cargo.toml, Dockerfile, etc.) and print a recommended `--include`
+list. With `--install`, hands the list to `install.sh`. With
+`--install --dry-run`, runs install.sh in dry-run mode.
 
-### Substitutions
+## Tests
 
-Each source `skills/<name>.md` may contain placeholders:
+`bin/test/markers_test.sh` — every `agents/*.md` has the expected
+shape (frontmatter, H1, four required sections, name matches
+filename).
 
-| Placeholder     | Replacement                                           |
-| --------------- | ----------------------------------------------------- |
-| `{{PREFIX}}`    | The prefix arg, e.g. `pito`                           |
-| `{{REPO_NAME}}` | Same as the prefix (kept distinct for future use)     |
-| `{{REPO_PATH}}` | `${HOME}/Dev/<prefix>`, e.g. `/home/catalin/Dev/pito` |
+`bin/test/install_smoke_test.sh` — end-to-end exercise of install,
+check, diff, append, update, stale detection, hand-written refusal,
+and `--with-extra-stub`. Uses a throwaway temp dir.
 
-The replacement happens via `sed` on the way out — the source file stays
-generic; only the installed copy is project-specific.
+## Conventions
 
-## pull.sh
-
-Mirrors edits made under `~/.codewhale/skills/<prefix>-*/SKILL.md` back into
-`skills/<name>.md` as generic templates.
-
-```bash
-bin/pull.sh <prefix>
-bin/pull.sh <prefix> --dry-run
-```
-
-### What it does
-
-For every `~/.codewhale/skills/<prefix>-<name>/SKILL.md` whose `<name>` is in
-the allowlist:
-
-1. Reads the file.
-2. Reverse-substitutes `${HOME}/Dev/<prefix>` → `{{REPO_PATH}}`.
-3. Writes to `skills/<name>.md`.
-
-### What it does NOT do
-
-- It does NOT auto-substitute `<prefix>` or `<name>` back into `{{PREFIX}}` /
-  `{{REPO_NAME}}`. The project name often appears inside branding,
-  identifiers, or comments that shouldn't become placeholders. If you want
-  the literal string to become a placeholder, edit the source by hand.
-
-- It does NOT merge — it overwrites. Hand-review the diff after pulling so
-  any drift specific to one project doesn't silently leak back into the
-  generic source.
-
-## Safety properties
-
-- Both scripts are idempotent. Re-running with the same args is a no-op
-  (modulo mtime updates).
-- `install.sh` never deletes unless `--prune` is explicitly passed, and the
-  prune is scoped to the requested prefix only.
-- `pull.sh` only touches files whose name matches `<prefix>-<allowed-name>`
-  — unrelated files in `~/.codewhale/skills/` (e.g., other projects') are
-  left alone.
-
-## Workflow
-
-Edit a generic source (e.g. `skills/rails.md`):
-
-```bash
-$EDITOR skills/rails.md
-bin/install.sh pito --include rails
-bin/install.sh fepra2 --include rails
-git add skills/rails.md
-git commit -m "Tighten rails skill's RSpec discipline"
-git push
-```
-
-Edit a per-project copy via runtime edits (writes to `~/.codewhale/skills/`):
-
-```bash
-bin/pull.sh pito --dry-run     # preview
-bin/pull.sh pito               # write back
-git diff skills/                # hand-review
-git commit -m "Update from pito's runtime edit"
-git push
-```
+- All scripts use `#!/usr/bin/env bash` and `set -euo pipefail`.
+- shellcheck-clean. Warnings disabled inline only with a comment
+  justifying why.
+- Each script accepts `-h`/`--help` and prints the header block as
+  usage.
+- Long flag names (`--include`, `--mode`) over short. Less chance of
+  typo-driven breakage.
+- Never write outside the target project's directory.
