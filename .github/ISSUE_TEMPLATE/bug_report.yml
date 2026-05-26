@@ -1,0 +1,92 @@
+name: Bug report
+description: Report a bug in an agent file, an install script, or the CI pipeline
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        Reminder: **this is one person's personal setup, open-sourced
+        as-is.** No SLA, no support guarantees, no roadmap commitments.
+        Issues are triaged when there's time. Quality reports get
+        triaged faster.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - "agents/ — an agent file's content is wrong / outdated / misleading"
+        - "bin/install.sh — install / update / append / override behavior"
+        - "bin/diff.sh or bin/check.sh"
+        - "bin/suggest.sh — stack detection"
+        - "bin/test/* — markers test or install smoke test"
+        - "CI pipeline (.github/workflows/ci.yml)"
+        - "Docs (README, AGENTS.md, bin/README.md, EXTRA stub)"
+        - "Other / unsure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug + what you expected to happen.
+      placeholder: |
+        I ran `bin/install.sh ~/Dev/myproj --include rails --mode update`
+        and expected ..., but instead ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered, deterministic steps. Shortest possible repro.
+      placeholder: |
+        1. `git clone https://github.com/gmrdad82/agents`
+        2. `mkdir /tmp/target`
+        3. `bin/install.sh /tmp/target --include rails --mode override`
+        4. `cat /tmp/target/AGENTS.md`
+        5. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA
+      description: Output of `git rev-parse --short HEAD` in your clone.
+      placeholder: e.g. 6de52b4
+    validations:
+      required: false
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS + Bash version (`bash --version | head -1`).
+      placeholder: e.g. Arch Linux, GNU bash 5.2.37
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / error output
+      description: Paste error tracebacks, log lines, or screenshots. Use code blocks for text.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgment
+      options:
+        - label: I've read the [Project status](https://github.com/gmrdad82/agents#project-status) section and understand this repo has no SLA.
+          required: true
+        - label: I've searched existing issues to avoid duplicates.
+          required: true

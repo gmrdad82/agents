@@ -1,0 +1,76 @@
+name: Feature request
+description: Suggest a new agent, a script improvement, or an enhancement
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion.
+
+        Reminder: **this repo reflects one person's stack and
+        workflow.** Feature requests are a wishlist — there is no
+        commitment to implement. PRs welcome but not guaranteed to be
+        merged. If the suggestion doesn't fit how I work, it likely
+        won't ship from this repo. Fork freely.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of suggestion?
+      options:
+        - "New agent file (a topic not currently covered)"
+        - "Change to an existing agent's content"
+        - "Script improvement (install/diff/check/suggest)"
+        - "New script / utility"
+        - "CI / tooling improvement"
+        - "Docs improvement"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What use case or pain point is this solving?
+      placeholder: |
+        When I install the agents into a Phoenix project, none of the
+        agents cover Elixir / Phoenix conventions ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Sketch how this might work. Doesn't have to be polished.
+      placeholder: |
+        Add `agents/phoenix.md` covering routers, contexts, LiveView,
+        Ecto migrations, mix tasks. Pattern matches the existing
+        `agents/rails.md`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else have you tried? Why didn't it work?
+      placeholder: |
+        Tried writing this content directly in my project's
+        `docs/EXTRA.md`, but it would benefit other Phoenix projects too.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgment
+      options:
+        - label: I've read the [Project status](https://github.com/gmrdad82/agents#project-status) section and understand feature requests are a wishlist.
+          required: true
+        - label: I've searched existing issues to avoid duplicates.
+          required: true
+        - label: I'd be willing to discuss / contribute a PR for this if it aligns with the project's direction.
+          required: false
