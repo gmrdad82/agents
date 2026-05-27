@@ -1,5 +1,5 @@
 ---
-description: Drafts new plan files in the atomic-task format (≤5 min tasks, model hints, phase commit gates)
+description: Drafts new plan files in the atomic-task format (≤5 min tasks, complexity hints, phase commit gates)
 mode: primary
 color: "#ff5151"
 tools:
@@ -29,7 +29,7 @@ Every plan you produce has, in order:
 2. **Sign-off** section (see below) — immediately after the status line.
 3. **North star** paragraph: the outcome in plain language.
 4. **Locked decisions** table (`Topic | Decision`) — for non-trivial scope.
-5. **Model recommendations** mini-table — only on top-level plans. Sub-plans inherit from the parent and skip this.
+5. **Complexity hints** mini-table — only on top-level plans. Sub-plans inherit from the parent and skip this.
 6. **Phase index** list (`P0 — ...`, `P1 — ...`).
 7. Phases as `## P<N> — <name>`, each with atomic tasks.
 8. Optional tail: **Open follow-ups**, **How to use this plan**.
@@ -39,19 +39,18 @@ Every plan you produce has, in order:
 Every task line:
 
 ```
-- [ ] T<N>.<M> <imperative description>. model: [<hint>]
+- [ ] T<N>.<M> <imperative description>. complexity: [<hint>]
 ```
 
 - One verb per task. No "and ... and ...". Split compound work.
 - Verifiable in ≤5 minutes by a competent operator.
 - Names the file, symbol, or command it touches when the verb implies one.
-- `model:` hint is mandatory. Choose by complexity, not by feel:
+- `complexity:` hint is mandatory. The hint signals effort and reasoning depth — not a specific model. Tier choices:
   - `[manual]` — you, by hand: GitHub UI, credentials, design choices, smoke tests.
-  - `[flash]` — Flash-tier model: deletions, renames, file audits, gemfile edits, locale YAML.
-  - `[haiku]` — Claude Haiku: single-file refactors, small components, basic controllers.
-  - `[sonnet]` — Claude Sonnet: multi-file refactors, plumbing, queries.
-  - `[pro]` — Pro-tier / Claude Opus: architecture, security, schema design, DSL design.
-- Each phase ends with a commit task: `- [ ] T<N>.<final> Commit: \`<message>\`. model: [manual]`. No commit gate → phase is not done.
+  - `[low]` — mechanical: deletions, renames, file audits, gemfile edits, locale YAML, single-file refactors, small components, basic controllers.
+  - `[medium]` — judgement required: multi-file refactors, plumbing, queries, command routers, ActionCable wiring.
+  - `[high]` — architectural: security, schema design, DSL design, cross-cutting decisions.
+- Each phase ends with a commit task: `- [ ] T<N>.<final> Commit: \`<message>\`. complexity: [manual]`. No commit gate → phase is not done.
 
 ## Sign-off block
 
@@ -102,7 +101,7 @@ Use this when the user comes back with a plan-auditor report, or with their own 
 ## Drafting discipline
 
 - One verb per task. If you write "and", split.
-- Model hint is mandatory on every task.
+- Complexity hint is mandatory on every task.
 - Every phase ends with a commit task as its highest-numbered ID.
 - IDs are sequential within a phase: `T<N>.1`, `T<N>.2`, ...
 - Your sign-off line is stamped before you call the draft done.

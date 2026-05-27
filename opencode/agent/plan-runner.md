@@ -51,7 +51,7 @@ Run this every time the user invokes you on a plan file — including resumed wo
 
 ## Execution protocol
 
-- Before starting an item, check its text for a model recommendation (e.g. "model: opus", "recommended: sonnet"). If present, state it to the user and ask whether to switch before proceeding. Do not switch automatically.
+- Before starting an item, **announce its complexity hint** to the user. Read the `complexity: [low|medium|high|manual]` tag at the end of the task line and state it explicitly in chat (e.g. "Next: T3.2 — complexity: [medium]"). Do this for every task, not just high-effort ones. The hint signals expected effort and reasoning depth — the user uses it to decide which model should drive the task. Do not start work until the user has confirmed or selected a model.
 - Before starting an item: flip its checkbox in the plan file from `[ ]` to `[-]`, and set its todo to `in_progress`. See "Checkbox update timing" below.
 - Keep exactly one todo `in_progress` at a time.
 - Do the work. Run tests or whatever verification the item implies.
@@ -82,7 +82,7 @@ You must NOT:
 Every `Commit:` task in the plan commits the work for that phase. **The plan file itself MUST be part of that commit.** The checkbox state IS the per-task record of what landed; if the commits don't include the plan, the `[x]` transitions drift away from git history.
 
 - Before running `git commit` for a Commit task, `git add <plan-file>` alongside the work files. The plan file with its current `[x]`s is staged together with what those `[x]`s describe.
-- For `model: [manual]` Commit tasks (the user runs git themselves), remind them in chat to stage the plan file too, **before** they commit. State the exact path.
+- For `complexity: [manual]` Commit tasks (the user runs git themselves), remind them in chat to stage the plan file too, **before** they commit. State the exact path.
 - The commit message stays the one specified in the plan's `Commit:` task text. Don't paraphrase, don't expand, don't add Co-Authored-By unless the user explicitly asks.
 - This applies to **every** commit during plan execution, including any out-of-band commits (e.g. fixing a blocker mid-phase) — the plan file's state must always travel with the work it describes.
 
@@ -99,7 +99,7 @@ Order for a Commit task:
 3. `[-] → [x]` — flip in the plan file NOW, before the commit runs.
 4. `git add <plan-file>` + `git commit` — the commit captures the plan file with this task at `[x]`, alongside the work files and any sibling-task `[x]`s made earlier in the phase.
 
-For `model: [manual]` Commit tasks (the user runs git): you still own steps 1–3. After step 3, remind the user to stage the plan path together with the work files before they commit.
+For `complexity: [manual]` Commit tasks (the user runs git): you still own steps 1–3. After step 3, remind the user to stage the plan path together with the work files before they commit.
 
 If the commit fails (pre-commit hook, etc.), revert this task to `[-]`, fix the issue, then re-flip to `[x]` immediately before re-running `git commit`. Never amend the failed commit — make a new one.
 

@@ -1,5 +1,5 @@
 ---
-description: Audits a plan file before execution — checks atomicity, model hints, commit gates, coverage gaps. Read-only; reports findings for plan-author to address.
+description: Audits a plan file before execution — checks atomicity, complexity hints, commit gates, coverage gaps. Read-only; reports findings for plan-author to address.
 mode: primary
 color: "#51ff51"
 tools:
@@ -27,27 +27,26 @@ Run every check, every time. Tag each finding with severity (`critical` or `mino
 
 ### B. Task atomicity (critical → minor by case)
 
-4. Every task matches: `- [ ] T<N>.<M> <description>. model: [<hint>]` (the checkbox may also be `[-]` or `[x]` on a partially-run plan).
+4. Every task matches: `- [ ] T<N>.<M> <description>. complexity: [<hint>]` (the checkbox may also be `[-]` or `[x]` on a partially-run plan).
 5. Task IDs are sequential within each phase: `T<N>.1, T<N>.2, ...`. No gaps, no duplicates.
 6. Task descriptions start with an imperative verb (Delete, Add, Rewrite, Generate, Configure, etc.).
 7. Tasks do not contain " and " in their description. If they do — split candidate.
 8. Tasks name a file, symbol, or command when the verb implies one (e.g. "Delete X" with no X is a bug).
-9. Tasks scoped ≤5 min — flag any line that implies multi-file refactor without a `[sonnet]` or `[pro]` hint.
+9. Tasks scoped ≤5 min — flag any line that implies multi-file refactor without a `[medium]` or `[high]` hint.
 
-### C. Model hints (minor unless egregious)
+### C. Complexity hints (minor unless egregious)
 
-10. Every task has a `model: [hint]`.
-11. Hint is one of: `[manual]`, `[flash]`, `[haiku]`, `[sonnet]`, `[pro]`.
-12. Hint fits complexity:
-    - delete / rename / file audit → `[flash]` (or `[manual]` if irreversible).
-    - single-file refactor / small component → `[haiku]`.
-    - multi-file refactor / plumbing / queries → `[sonnet]`.
-    - architecture / security / schema / DSL → `[pro]`.
+10. Every task has a `complexity: [hint]`.
+11. Hint is one of: `[manual]`, `[low]`, `[medium]`, `[high]`.
+12. Hint fits the work:
+    - delete / rename / file audit / single-file refactor / small component → `[low]` (or `[manual]` if irreversible).
+    - multi-file refactor / plumbing / queries / command router → `[medium]`.
+    - architecture / security / schema / DSL → `[high]`.
     - design choices / credentials / smoke tests / GitHub UI → `[manual]`.
 
 ### D. Commit gates (critical)
 
-13. Every phase ends with a task whose description starts with `Commit:` and has `model: [manual]`.
+13. Every phase ends with a task whose description starts with `Commit:` and has `complexity: [manual]`.
 14. The commit task is the highest-numbered task in its phase.
 
 ### E. Coverage (severity depends on what's missing)
@@ -114,7 +113,7 @@ The file you write contains the full audit. Sections, in order:
 
 - Tasks per phase: P0: 9, P1: 12, ...
 - Total tasks: N
-- Model-hint distribution: manual: 23, flash: 41, haiku: 18, sonnet: 12, pro: 4
+- Complexity-hint distribution: manual: 23, low: 59, medium: 12, high: 4
 - Phases without commit gate: (empty if all good)
 
 ## Next step
