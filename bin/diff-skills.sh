@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# diff.sh — compare agents in <project>/AGENTS.md against the master source.
+# diff-skills.sh — compare skills in <project>/AGENTS.md against the master source.
 #
 # Usage:
-#   bin/diff.sh <path/to/project>
+#   bin/diff-skills.sh <path/to/project>
 #
 # Reports:
-#   missing  — agents in agents/ but not in <project>/AGENTS.md
-#   stale    — agents present in both but whose marker sha doesn't match
+#   missing  — skills in skills/ but not in <project>/AGENTS.md
+#   stale    — skills present in both but whose marker sha doesn't match
 #              the current source file
-#   orphans  — agents in <project>/AGENTS.md but not in agents/
+#   orphans  — skills in <project>/AGENTS.md but not in skills/
 #
 # Exit code 0 if everything is in sync; non-zero otherwise (CI-friendly).
 
@@ -16,7 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-AGENTS_DIR="$REPO_ROOT/agents"
+SKILLS_DIR="$REPO_ROOT/skills"
 
 if [[ $# -ne 1 || "$1" == "-h" || "$1" == "--help" ]]; then
   sed -n '2,/^set -/p' "$0" | sed -n 's/^# \{0,1\}//p' | sed '$d'
@@ -39,7 +39,7 @@ sha_of() {
 }
 
 master_names() {
-  find "$AGENTS_DIR" -maxdepth 1 -name '*.md' -printf '%f\n' \
+  find "$SKILLS_DIR" -maxdepth 1 -name '*.md' -printf '%f\n' \
     | sed 's/\.md$//' \
     | sort
 }
@@ -68,7 +68,7 @@ stale=""
 while IFS= read -r n; do
   [[ -n "$n" ]] || continue
   old="$(installed_sha_of "$n")"
-  new="$(sha_of "$AGENTS_DIR/$n.md")"
+  new="$(sha_of "$SKILLS_DIR/$n.md")"
   if [[ "$old" != "$new" ]]; then
     stale+="$n"$'\n'
   fi

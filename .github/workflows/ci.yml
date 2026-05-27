@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   lint:
-    name: lint + scripts + agent structure
+    name: lint + scripts + skill structure
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,8 +35,8 @@ jobs:
             bash -n "$script"
           done
 
-      - name: Agent file structure
+      - name: Skill file structure
         run: bin/test/markers_test.sh
 
-      - name: install / diff / check / update smoke
+      - name: install-skills / diff-skills / check-skills / update smoke
         run: bin/test/install_smoke_test.sh

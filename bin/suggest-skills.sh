@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# suggest.sh — analyse a project repo and recommend which agents to install.
+# suggest-skills.sh — analyse a project repo and recommend which skills to install.
 #
 # Usage:
-#   bin/suggest.sh <path/to/project>
-#                  [--install] [--dry-run] [--mode update|append|override]
-#                  [-h|--help]
+#   bin/suggest-skills.sh <path/to/project>
+#                         [--install] [--dry-run] [--mode update|append|override]
+#                         [-h|--help]
 #
 # Walks the project tree for known stack markers (Gemfile, package.json,
 # Cargo.toml, Dockerfile, ...) and prints a recommended --include list.
-# With --install, hands the list off to install.sh.
-# With --install --dry-run, install.sh runs in dry-run mode.
+# With --install, hands the list off to install-skills.sh.
+# With --install --dry-run, install-skills.sh runs in dry-run mode.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-AGENTS_DIR="$REPO_ROOT/agents"
+SKILLS_DIR="$REPO_ROOT/skills"
 
 usage() {
   sed -n '2,/^set -/p' "$0" | sed -n 's/^# \{0,1\}//p' | sed '$d'
@@ -182,8 +182,8 @@ mapfile -t sorted_names < <(printf '%s\n' "${names[@]}" | sort)
 
 echo "Detected stack and recommendations for $TARGET:" >&2
 for n in "${sorted_names[@]}"; do
-  if [[ ! -f "$AGENTS_DIR/$n.md" ]]; then
-    printf '  %-15s [SKIP — no agent named %s]\n' "$n" "$n" >&2
+  if [[ ! -f "$SKILLS_DIR/$n.md" ]]; then
+    printf '  %-15s [SKIP — no skill named %s]\n' "$n" "$n" >&2
     continue
   fi
   printf '  %-15s %s\n' "$n" "${REASONS[$n]}" >&2
@@ -191,19 +191,19 @@ done
 
 include_list=""
 for n in "${sorted_names[@]}"; do
-  [[ -f "$AGENTS_DIR/$n.md" ]] || continue
+  [[ -f "$SKILLS_DIR/$n.md" ]] || continue
   include_list+="$n,"
 done
 include_list="${include_list%,}"
 
 echo "" >&2
 echo "Recommended:" >&2
-echo "  bin/install.sh $TARGET --include $include_list --mode $MODE" >&2
+echo "  bin/install-skills.sh $TARGET --include $include_list --mode $MODE" >&2
 
 if [[ $DO_INSTALL -eq 1 ]]; then
   echo "" >&2
   echo "Installing..." >&2
   args=("$TARGET" --include "$include_list" --mode "$MODE")
   if [[ $DRY_RUN -eq 1 ]]; then args+=(--dry-run); fi
-  exec "$SCRIPT_DIR/install.sh" "${args[@]}"
+  exec "$SCRIPT_DIR/install-skills.sh" "${args[@]}"
 fi

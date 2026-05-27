@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: README — how to install and use
-    url: https://github.com/gmrdad82/agents#quick-start
-    about: Quick start, available agents, install modes. Read this before opening an issue.
+    url: https://github.com/gmrdad82/agents#quick-start--skills-per-project
+    about: Quick start, available skills, install modes. Read this before opening an issue.
   - name: AGENTS.md — pipeline, marker spec, script contracts
     url: https://github.com/gmrdad82/agents/blob/main/AGENTS.md
-    about: How install.sh / diff.sh / check.sh work, marker format, hard rules.
+    about: How install-skills.sh / diff-skills.sh / check-skills.sh work, marker format, hard rules.
   - name: Project status (no SLA, no support guarantees)
     url: https://github.com/gmrdad82/agents#project-status
     about: This is one person's personal setup, open-sourced as-is. Read this before opening an issue.

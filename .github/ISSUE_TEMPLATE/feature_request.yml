@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new agent, a script improvement, or an enhancement
+description: Suggest a new skill, OpenCode agent, script improvement, or enhancement
 title: "[feature] "
 labels: ["enhancement"]
 body:
@@ -19,9 +19,11 @@ body:
     attributes:
       label: What kind of suggestion?
       options:
-        - "New agent file (a topic not currently covered)"
-        - "Change to an existing agent's content"
-        - "Script improvement (install/diff/check/suggest)"
+        - "New skill file (a topic not currently covered)"
+        - "Change to an existing skill's content"
+        - "New OpenCode agent definition"
+        - "Change to an existing OpenCode agent"
+        - "Script improvement (install-skills / diff-skills / check-skills / suggest-skills / install-agents)"
         - "New script / utility"
         - "CI / tooling improvement"
         - "Docs improvement"
@@ -35,8 +37,8 @@ body:
       label: The problem
       description: What use case or pain point is this solving?
       placeholder: |
-        When I install the agents into a Phoenix project, none of the
-        agents cover Elixir / Phoenix conventions ...
+        When I install the skills into a Phoenix project, none of the
+        skills cover Elixir / Phoenix conventions ...
     validations:
       required: true
 
@@ -46,9 +48,9 @@ body:
       label: Proposed solution
       description: Sketch how this might work. Doesn't have to be polished.
       placeholder: |
-        Add `agents/phoenix.md` covering routers, contexts, LiveView,
+        Add `skills/phoenix.md` covering routers, contexts, LiveView,
         Ecto migrations, mix tasks. Pattern matches the existing
-        `agents/rails.md`.
+        `skills/rails.md`.
     validations:
       required: true
 

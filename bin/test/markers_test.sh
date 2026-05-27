@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# markers_test.sh — validate every agents/*.md has the expected shape.
+# markers_test.sh — validate every skills/*.md has the expected shape.
 #
 # Asserts:
 #   - YAML frontmatter present with `name:` and `description:`
@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-AGENTS_DIR="$REPO_ROOT/agents"
+SKILLS_DIR="$REPO_ROOT/skills"
 
 fail() {
   echo "FAIL: $1" >&2
@@ -23,7 +23,7 @@ failed=0
 count=0
 
 shopt -s nullglob
-for f in "$AGENTS_DIR"/*.md; do
+for f in "$SKILLS_DIR"/*.md; do
   count=$((count + 1))
   base="$(basename "$f" .md)"
 
@@ -74,12 +74,12 @@ done
 shopt -u nullglob
 
 if [[ $count -eq 0 ]]; then
-  echo "no agent files found in $AGENTS_DIR" >&2
+  echo "no skill files found in $SKILLS_DIR" >&2
   exit 1
 fi
 
 if [[ $failed -eq 0 ]]; then
-  echo "OK: $count agent files passed structure checks"
+  echo "OK: $count skill files passed structure checks"
   exit 0
 else
   echo "FAILED: $failed problem(s) across $count files" >&2

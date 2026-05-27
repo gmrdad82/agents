@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a bug in an agent file, an install script, or the CI pipeline
+description: Report a bug in a skill file, an OpenCode agent definition, an install script, or the CI pipeline
 title: "[bug] "
 labels: ["bug"]
 body:
@@ -18,10 +18,12 @@ body:
     attributes:
       label: Which area?
       options:
-        - "agents/ — an agent file's content is wrong / outdated / misleading"
-        - "bin/install.sh — install / update / append / override behavior"
-        - "bin/diff.sh or bin/check.sh"
-        - "bin/suggest.sh — stack detection"
+        - "skills/ — a skill file's content is wrong / outdated / misleading"
+        - "opencode/agent/ — an OpenCode agent definition is wrong"
+        - "bin/install-skills.sh — install / update / append / override behavior"
+        - "bin/diff-skills.sh or bin/check-skills.sh"
+        - "bin/suggest-skills.sh — stack detection"
+        - "bin/install-agents.sh — OpenCode agent installer"
         - "bin/test/* — markers test or install smoke test"
         - "CI pipeline (.github/workflows/ci.yml)"
         - "Docs (README, AGENTS.md, bin/README.md, EXTRA stub)"
@@ -35,7 +37,7 @@ body:
       label: What happened?
       description: Describe the bug + what you expected to happen.
       placeholder: |
-        I ran `bin/install.sh ~/Dev/myproj --include rails --mode update`
+        I ran `bin/install-skills.sh ~/Dev/myproj --include rails --mode update`
         and expected ..., but instead ...
     validations:
       required: true
@@ -48,7 +50,7 @@ body:
       placeholder: |
         1. `git clone https://github.com/gmrdad82/agents`
         2. `mkdir /tmp/target`
-        3. `bin/install.sh /tmp/target --include rails --mode override`
+        3. `bin/install-skills.sh /tmp/target --include rails --mode override`
         4. `cat /tmp/target/AGENTS.md`
         5. Observe ...
     validations:

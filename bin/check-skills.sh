@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# check.sh — list agents currently installed in <project>/AGENTS.md.
+# check-skills.sh — list skills currently installed in <project>/AGENTS.md.
 #
 # Usage:
-#   bin/check.sh <path/to/project>
+#   bin/check-skills.sh <path/to/project>
 #
-# Prints one agent name per line, in the order they appear in AGENTS.md.
+# Prints one skill name per line, in the order they appear in AGENTS.md.
 # Exit code 0 if AGENTS.md is present (even if empty); 1 if missing.
 
 set -euo pipefail
