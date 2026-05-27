@@ -88,6 +88,21 @@ Every `Commit:` task in the plan commits the work for that phase. **The plan fil
 
 **Acceptance criterion the user can check**: `git log -p <plan-file>` should show a `[ ] → [-]` and `[-] → [x]` transition for every task ID, anchored at the phase commit where that task's work landed. If the plan file's history is sparse compared to the work history, commits were made without staging the plan — that's the bug this rule prevents.
 
+## Commit-task flow (order inversion)
+
+For a `Commit:` task the `[-] → [x]` flip happens BEFORE `git commit`, not after. The task's "work" IS the commit; flipping after means the commit captures the plan file showing this task at `[-]` and the `[x]` transition has nowhere to live in git history.
+
+Order for a Commit task:
+
+1. `[ ] → [-]` — flip in the plan file.
+2. Evaluate: review what's staged, confirm the message matches the `Commit:` text, surface anything missing.
+3. `[-] → [x]` — flip in the plan file NOW, before the commit runs.
+4. `git add <plan-file>` + `git commit` — the commit captures the plan file with this task at `[x]`, alongside the work files and any sibling-task `[x]`s made earlier in the phase.
+
+For `model: [manual]` Commit tasks (the user runs git): you still own steps 1–3. After step 3, remind the user to stage the plan path together with the work files before they commit.
+
+If the commit fails (pre-commit hook, etc.), revert this task to `[-]`, fix the issue, then re-flip to `[x]` immediately before re-running `git commit`. Never amend the failed commit — make a new one.
+
 ## Plan file discipline
 
 The plan file is read-mostly. The ONLY edits you may make are checkbox state transitions on existing items:
