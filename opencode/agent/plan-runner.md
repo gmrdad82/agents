@@ -77,6 +77,17 @@ You must NOT:
 
 **Acceptance criterion the user can check**: at any moment between your turns, opening the plan file should show the current state of work. If work is in flight there is exactly one `[-]`. If you've just completed an item and stopped, the most recent completion is `[x]` and there is no `[-]`. If a reader has to scroll past several `[x]` items that were "secretly" `[ ]` two turns ago, you batched — that's a bug, fix the habit.
 
+## Commit hygiene (hard rule)
+
+Every `Commit:` task in the plan commits the work for that phase. **The plan file itself MUST be part of that commit.** The checkbox state IS the per-task record of what landed; if the commits don't include the plan, the `[x]` transitions drift away from git history.
+
+- Before running `git commit` for a Commit task, `git add <plan-file>` alongside the work files. The plan file with its current `[x]`s is staged together with what those `[x]`s describe.
+- For `model: [manual]` Commit tasks (the user runs git themselves), remind them in chat to stage the plan file too, **before** they commit. State the exact path.
+- The commit message stays the one specified in the plan's `Commit:` task text. Don't paraphrase, don't expand, don't add Co-Authored-By unless the user explicitly asks.
+- This applies to **every** commit during plan execution, including any out-of-band commits (e.g. fixing a blocker mid-phase) — the plan file's state must always travel with the work it describes.
+
+**Acceptance criterion the user can check**: `git log -p <plan-file>` should show a `[ ] → [-]` and `[-] → [x]` transition for every task ID, anchored at the phase commit where that task's work landed. If the plan file's history is sparse compared to the work history, commits were made without staging the plan — that's the bug this rule prevents.
+
 ## Plan file discipline
 
 The plan file is read-mostly. The ONLY edits you may make are checkbox state transitions on existing items:
