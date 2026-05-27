@@ -1,7 +1,7 @@
 ---
 description: Read-only explorer — answers "where is X?" or "how does Y work?" without touching files
 mode: primary
-color: info
+color: "#cccc00"
 tools:
   read: true
   bash: true

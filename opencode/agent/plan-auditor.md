@@ -1,7 +1,7 @@
 ---
 description: Audits a plan file before execution — checks atomicity, model hints, commit gates, coverage gaps. Read-only; reports findings for plan-author to address.
 mode: primary
-color: error
+color: "#51ff51"
 tools:
   read: true
   write: true

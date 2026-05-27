@@ -1,7 +1,7 @@
 ---
 description: Drafts new plan files in the atomic-task format (≤5 min tasks, model hints, phase commit gates)
 mode: primary
-color: success
+color: "#ff5151"
 tools:
   read: true
   edit: true

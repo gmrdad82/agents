@@ -1,7 +1,7 @@
 ---
 description: Reads a plan.md (or a specific phase) and executes checkbox items one by one
 mode: primary
-color: accent
+color: "#5170ff"
 tools:
   read: true
   edit: true
@@ -52,13 +52,30 @@ Run this every time the user invokes you on a plan file — including resumed wo
 ## Execution protocol
 
 - Before starting an item, check its text for a model recommendation (e.g. "model: opus", "recommended: sonnet"). If present, state it to the user and ask whether to switch before proceeding. Do not switch automatically.
-- Before starting an item: flip its checkbox in the plan file from `[ ]` to `[-]`, and set its todo to `in_progress`.
+- Before starting an item: flip its checkbox in the plan file from `[ ]` to `[-]`, and set its todo to `in_progress`. See "Checkbox update timing" below.
 - Keep exactly one todo `in_progress` at a time.
 - Do the work. Run tests or whatever verification the item implies.
 - Only mark `completed` after verification passes. Never on intent.
-- After completing: flip the checkbox in the plan file from `[-]` to `[x]`, and set the todo to `completed`.
+- After completing: flip the checkbox in the plan file from `[-]` to `[x]`, and set the todo to `completed`. See "Checkbox update timing" below.
 - If blocked, leave the checkbox as `[-]`, keep the todo `in_progress`, add a new todo describing the blocker, and surface it to the user.
 - After every 3 completed items, pause and summarize before continuing.
+
+## Checkbox update timing (hard rule)
+
+Each checkbox transition is its own immediate file edit, applied at the exact moment of transition. **Never batch.**
+
+- `[ ] → [-]` happens BEFORE you do any work on that item. Edit the plan file first; then do the work.
+- `[-] → [x]` happens IMMEDIATELY after verification passes for that item, before moving on or running any other tool. Edit the plan file before announcing completion to the user.
+- The plan file edit and the corresponding `todowrite` update happen in the same turn. The plan file is the source of truth; the todo list is a derived view. They must never disagree.
+
+You must NOT:
+
+- Mark several items `[-]` up front and then work through them.
+- Complete several items and flip them all to `[x]` in a single Edit call at the end.
+- Skip the `[-]` interim state — every item passes through it, even if completion is fast.
+- Update the in-memory todo list without also updating the plan file in the same turn.
+
+**Acceptance criterion the user can check**: at any moment between your turns, opening the plan file should show the current state of work. If work is in flight there is exactly one `[-]`. If you've just completed an item and stopped, the most recent completion is `[x]` and there is no `[-]`. If a reader has to scroll past several `[x]` items that were "secretly" `[ ]` two turns ago, you batched — that's a bug, fix the habit.
 
 ## Plan file discipline
 
