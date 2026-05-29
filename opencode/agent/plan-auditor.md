@@ -32,17 +32,16 @@ Run every check, every time. Tag each finding with severity (`critical` or `mino
 6. Task descriptions start with an imperative verb (Delete, Add, Rewrite, Generate, Configure, etc.).
 7. Tasks do not contain " and " in their description. If they do — split candidate.
 8. Tasks name a file, symbol, or command when the verb implies one (e.g. "Delete X" with no X is a bug).
-9. Tasks scoped ≤5 min — flag any line that implies multi-file refactor without a `[medium]` or `[high]` hint.
+9. Tasks scoped ≤5 min — flag any line that bundles a large/multi-file change into one task (split candidate); architectural scope must carry `[high]`.
 
 ### C. Complexity hints (minor unless egregious)
 
 10. Every task has a `complexity: [hint]`.
-11. Hint is one of: `[manual]`, `[low]`, `[medium]`, `[high]`.
+11. Hint is one of: `[manual]`, `[low]`, `[high]` (three tiers only — `[medium]` is not allowed; flag it).
 12. Hint fits the work:
-    - delete / rename / file audit / single-file refactor / small component → `[low]` (or `[manual]` if irreversible).
-    - multi-file refactor / plumbing / queries / command router → `[medium]`.
-    - architecture / security / schema / DSL → `[high]`.
-    - design choices / credentials / smoke tests / GitHub UI → `[manual]`.
+    - delete / rename / file audit / single-file refactor / small component / plumbing / queries / pattern-following multi-file edits → `[low]` (or `[manual]` if irreversible).
+    - architecture / security / schema / DSL / command router / cross-cutting decisions → `[high]`.
+    - design choices / credentials / smoke tests / GitHub UI / commits → `[manual]`.
 
 ### D. Commit gates (critical)
 
@@ -60,6 +59,11 @@ Run every check, every time. Tag each finding with severity (`critical` or `mino
 18. Status blockquote present (draft / ready / in-progress / done).
 19. No trailing TODO/FIXME inside task descriptions.
 20. Phase names in `## P<N> — name` match Phase index entries verbatim.
+
+### G. Conventions (critical)
+
+21. No commit-task message contains `[skipci]` (commits land clean) and none carries a co-author trailer.
+22. No task creates a git branch or a version tag — plans run on the current branch. Flag any branch-creation or tagging task.
 
 ## Write discipline
 
@@ -113,7 +117,7 @@ The file you write contains the full audit. Sections, in order:
 
 - Tasks per phase: P0: 9, P1: 12, ...
 - Total tasks: N
-- Complexity-hint distribution: manual: 23, low: 59, medium: 12, high: 4
+- Complexity-hint distribution: manual: 23, low: 71, high: 4
 - Phases without commit gate: (empty if all good)
 
 ## Next step

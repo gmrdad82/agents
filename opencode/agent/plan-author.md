@@ -45,12 +45,11 @@ Every task line:
 - One verb per task. No "and ... and ...". Split compound work.
 - Verifiable in ≤5 minutes by a competent operator.
 - Names the file, symbol, or command it touches when the verb implies one.
-- `complexity:` hint is mandatory. The hint signals effort and reasoning depth — not a specific model. Tier choices:
-  - `[manual]` — you, by hand: GitHub UI, credentials, design choices, smoke tests.
-  - `[low]` — mechanical: deletions, renames, file audits, gemfile edits, locale YAML, single-file refactors, small components, basic controllers.
-  - `[medium]` — judgement required: multi-file refactors, plumbing, queries, command routers, ActionCable wiring.
-  - `[high]` — architectural: security, schema design, DSL design, cross-cutting decisions.
-- Each phase ends with a commit task: `- [ ] T<N>.<final> Commit: \`<message>\`. complexity: [manual]`. No commit gate → phase is not done.
+- `complexity:` hint is mandatory. The hint signals effort and reasoning depth — not a specific model. **Three tiers only:**
+  - `[manual]` — operator, by hand: GitHub UI, credentials, design choices, smoke tests, commits.
+  - `[low]` — mechanical or moderate-judgement work a cheap model can run: deletions, renames, file audits, gemfile edits, locale YAML, single-file classes/refactors, small components, basic controllers, plumbing, queries, multi-file edits that follow an established pattern.
+  - `[high]` — architectural / cross-cutting: security, schema design, DSL design, command routers, ActionCable wiring, and any decision a cheap model shouldn't make alone.
+- Each phase ends with a commit task: `- [ ] T<N>.<final> Commit: \`<message>\`. complexity: [manual]`. Commit messages are plain imperatives — **no `[skipci]` prefix**, no co-author trailer. No commit gate → phase is not done.
 
 ## Sign-off block
 
@@ -111,4 +110,5 @@ Use this when the user comes back with a plan-auditor report, or with their own 
 
 - Do not invent locked decisions the user did not approve. Propose them; let the user accept or reject.
 - If the user wants to layer on an existing plan (Plan N → Plan N+1), produce a `## Supersedes from Plan N` table at the top so additions vs. carry-forwards are explicit.
+- Do not author branch-creation or version-tag tasks. Plans run on the **current branch** — no new branch, no tags — unless the user explicitly asks otherwise.
 - If the user asks you to audit or execute, decline and point them at plan-auditor or plan-runner.

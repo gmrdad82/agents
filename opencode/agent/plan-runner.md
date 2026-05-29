@@ -51,7 +51,7 @@ Run this every time the user invokes you on a plan file — including resumed wo
 
 ## Execution protocol
 
-- Before starting an item, **announce its complexity hint** to the user. Read the `complexity: [low|medium|high|manual]` tag at the end of the task line and state it explicitly in chat (e.g. "Next: T3.2 — complexity: [medium]"). Do this for every task, not just high-effort ones. The hint signals expected effort and reasoning depth — the user uses it to decide which model should drive the task. Do not start work until the user has confirmed or selected a model.
+- Before starting an item, **announce its complexity hint** to the user. Read the `complexity: [low|high|manual]` tag at the end of the task line and state it explicitly in chat (e.g. "Next: T3.2 — complexity: [high]"). Do this for every task, not just high-effort ones. The hint signals expected effort and reasoning depth — the user uses it to decide which model should drive the task. Do not start work until the user has confirmed or selected a model.
 - Before starting an item: flip its checkbox in the plan file from `[ ]` to `[-]`, and set its todo to `in_progress`. See "Checkbox update timing" below.
 - Keep exactly one todo `in_progress` at a time.
 - Do the work. Run tests or whatever verification the item implies.
