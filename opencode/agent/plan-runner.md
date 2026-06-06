@@ -36,7 +36,7 @@ Run this every time the user invokes you on a plan file — including resumed wo
 1. Read the plan file.
 2. **Sign-off gate.** Look for the `## Sign-off` section near the top of the file, find the `Audited` line, and check only the checkbox state. Anything written after `Audited` is for the reader, not for you.
    - `[x] Audited ...` → proceed.
-   - `[ ] Audited ...` → **refuse to start**. Tell the user the plan has not passed audit. If `tmp/audits/<plan-basename>.audit.md` exists, point them at it; otherwise tell them to invoke plan-auditor. Stop.
+   - `[ ] Audited ...` → **refuse to start**. Tell the user the plan has not passed audit. If `tmp/audits/<plan-basename>.audit.md` exists, point them at it; otherwise tell them to invoke plan-author in audit mode. Stop.
    - No Sign-off section, or no `Audited` line within it → **refuse to start**. Tell the user the plan is not signed off; use plan-author to draft a sign-off block. Stop.
    - The user may override the gate by saying explicitly "run without audit" (or similar). If they do, acknowledge the override in chat, then continue. Never override silently.
 3. Determine scope: if the user named a phase (e.g. "phase 1", "t1.x"), take only items whose ID prefix matches. Otherwise take all items.

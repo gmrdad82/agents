@@ -107,18 +107,16 @@ fixed per-user path, so there is no per-project install for these.
 | Turbo                 | `skills/turbo.md`        |
 | Voyage AI             | `skills/voyage.md`       |
 
-## Available OpenCode agents (4)
+## Available OpenCode agents (2)
 
-| Agent        | File                             |
-| ------------ | -------------------------------- |
-| plan-runner  | `opencode/agent/plan-runner.md`  |
-| plan-author  | `opencode/agent/plan-author.md`  |
-| plan-auditor | `opencode/agent/plan-auditor.md` |
-| plan-scout   | `opencode/agent/plan-scout.md`   |
+| Agent       | File                            |
+| ----------- | ------------------------------- |
+| plan-author | `opencode/agent/plan-author.md` |
+| plan-runner | `opencode/agent/plan-runner.md` |
 
-A coordinated four-agent set for working with atomic-task plan files:
-author drafts, auditor reviews, runner executes (gated on auditor
-sign-off), scout answers read-only "where is X?" questions.
+A coordinated two-agent set for working with atomic-task plan files:
+plan-author drafts, audits, and updates plans (gating the sign-off line),
+and plan-runner executes them (gated on that sign-off).
 
 ## Skill install modes
 
