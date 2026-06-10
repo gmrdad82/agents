@@ -61,9 +61,8 @@ Every task line:
   - `[high]` — architectural / cross-cutting: security, schema design, DSL
     design, command routers, ActionCable wiring, and any decision a cheap model
     shouldn't make alone.
-- Each phase ends with a commit task:
-  `- [ ] T<N>.<final> Commit: \`<message>\`. complexity: [manual]`. Commit
-  messages are plain imperatives — **no `[skipci]` prefix**, no co-author
+- Each phase ends with a commit task — `Commit: <message>. complexity: [manual]`.
+  Commit messages are plain imperatives — no `[skipci]` prefix, no co-author
   trailer. No commit gate → phase is not done.
 
 ### Sign-off block
