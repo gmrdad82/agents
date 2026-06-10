@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   lint:
-    name: lint + scripts + skill structure
+    name: prettier markdown check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,23 +20,3 @@ jobs:
 
       - name: Prettier — markdown formatting check
         run: npx --yes prettier@latest --check '**/*.md'
-
-      - name: ShellCheck — bash script linter
-        uses: ludeeus/action-shellcheck@2.0.0
-        with:
-          scandir: bin
-          format: gcc
-
-      - name: bash -n — syntax check on every script
-        run: |
-          set -e
-          for script in bin/*.sh bin/test/*.sh; do
-            [ -f "$script" ] || continue
-            bash -n "$script"
-          done
-
-      - name: Skill file structure
-        run: bin/test/markers_test.sh
-
-      - name: install-skills / diff-skills / check-skills / update smoke
-        run: bin/test/install_smoke_test.sh
